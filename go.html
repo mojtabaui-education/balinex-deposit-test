@@ -106,11 +106,11 @@ $('send').onclick=async()=>{
   const meta={p:pid,v:ver,o:outcome,e:elapsed,cn:cl.length,c:cl.slice(0,15).map(e=>[Math.round(e.t/100)/10,e.node]),fb:fb?fb.t:null,f:get('fl'),m:get('md'),x:get('ex2'),ex:get('exp'),ts:new Date().toISOString(),vw:innerWidth};
   const msgs=[meta,...Object.entries(ans).map(([k,t])=>({p:pid,ts:meta.ts,k,t}))];
   try{localStorage.setItem('bt-result-'+pid,JSON.stringify({...meta,a:ans}))}catch(e){}
-  let ok=false;
-  if(C.endpoint){try{for(const m of msgs)await post(m);ok=true}catch(e){ok=false}}
+  let ok=false,err='';
+  if(C.endpoint){try{for(const m of msgs)await post(m);ok=true}catch(e){ok=false;err=(e&&e.name?e.name+': ':'')+((e&&e.message)||String(e))}}
   if(ok){$('endmsg').textContent='پاسخ‌هایت ثبت شد. می‌توانی این صفحه را ببندی.'}
   else{const code=btoa(unescape(encodeURIComponent(JSON.stringify(msgs))));
-    $('endmsg').innerHTML='ثبت خودکار انجام نشد. لطفاً این کد را کپی کنید و برای مجری بفرستید:<textarea readonly id="cd" style="margin-top:10px;direction:ltr;font-size:12px">'+code+'</textarea><button id="cp" style="margin-top:8px">کپی کد</button>';
+    $('endmsg').innerHTML='ثبت خودکار انجام نشد. لطفاً این کد را کپی کنید و برای مجری بفرستید:<textarea readonly id="cd" style="margin-top:10px;direction:ltr;font-size:12px">'+code+'</textarea><div class="sub" dir="ltr" style="margin-top:6px">'+err+'</div><button id="cp" style="margin-top:8px">کپی کد</button>';
     $('cp').onclick=()=>{$('cd').select();document.execCommand('copy');$('cp').textContent='کپی شد'}}
   show('end')};
 </script></body></html>
