@@ -139,7 +139,7 @@ function vSetup(){
   <div class="card"><h2>داده</h2><div class="row">
    <button class="btn" id="exj">خروجی JSON</button><button class="btn" id="exc">خروجی CSV</button>
    <label class="btn" style="margin:0">ورود JSON<input type="file" id="imp" accept=".json" class="hide"></label>
-   <button class="btn danger" id="reset">پاک‌کردن همه</button></div>
+   <label class="btn" style="margin:0">ورود نتایج شرکت‌کننده‌ها (JSON)<input type="file" id="impr" accept=".json" class="hide"></label><button class="btn danger" id="reset">پاک‌کردن همه</button></div>
    <p class="mute">داده فقط در مرورگر همین سیستم ذخیره می‌شود. بعد از هر روز آزمون خروجی بگیرید.</p></div>`;
   if(!L){['def','gap','appr','adate'].forEach(id=>$('#'+id).onchange=()=>{c.defaultDecision=$('#def').value;c.gap=+$('#gap').value||2;c.approver=$('#appr').value;c.approvedDate=$('#adate').value;save()})}
   $('#uA').onchange=e=>{c.urlA=e.target.value.trim();save()};$('#uB').onchange=e=>{c.urlB=e.target.value.trim();save()};
@@ -150,6 +150,7 @@ function vSetup(){
   $('#exj').onclick=()=>dl('balinex-test.json',JSON.stringify(S,null,1),'application/json');
   $('#exc').onclick=()=>dl('balinex-test.csv','﻿'+toCSV(),'text/csv');
   $('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{S=JSON.parse(t);save();render()}catch(x){alert('فایل نامعتبر')}})};
+  $('#impr').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{let a=JSON.parse(t);if(!Array.isArray(a))a=[a];a.forEach(applyResult);save();alert(a.length+' نتیجه وارد شد. نتیجهٔ «کمک‌کنندگی فیلد»، «اجباری تصور کرد» و «انتظار از مبلغ» را باید خودتان از پاسخ‌ها کدگذاری کنید.');render()}catch(x){alert('فایل نامعتبر')}})};
   $('#reset').onclick=()=>{if(confirm('همهٔ داده پاک شود؟')){S=structuredClone(DEF);save();render()}};
 }
 
@@ -185,6 +186,20 @@ const OUT={unassisted:'تکمیل بدون کمک',assisted:'تکمیل با ک�
 const blank=()=>({startedAt:null,stoppedAt:null,elapsed:null,events:[],firstClick:'',firstMethod:'',outcome:'',fieldUse:'',mandatory:'',expectation:'',helped:'',quote:'',pauseNote:'',q1:'',q2:'',q3:'',q4:'',q5:''});
 const EVT={click:'اولین کلیک',pause:'مکث',pausefill:'مکث برای پرکردن فیلد',back:'برگشت (مسیرنما)',help:'درخواست کمک',inactive:'کلیک روی بخش غیرفعال',note:'یادداشت'};
 let tick=null;
+const goUrl=p=>base+(p.version==='A'?TC.codeA:TC.codeB)+'&m=1&p='+encodeURIComponent(p.code);
+const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+function applyResult(r){
+  let p=S.participants.find(x=>x.code===r.p);
+  if(!p){p={id:'p'+Date.now()+Math.random().toString(36).slice(2,5),code:r.p,version:r.v,exp:false,pilot:false,obs:blank()};S.participants.push(p)}
+  const o=p.obs,a=r.answers||{};
+  const clicks=(r.events||[]).filter(e=>e.type==='click');
+  o.outcome=r.outcome==='done'?'unassisted':'incomplete';
+  o.elapsed=r.outcome==='done'?r.elapsed:o.elapsed;
+  if(clicks[0]&&!o.firstClick)o.firstClick=clicks[0].node+' @'+Math.round(clicks[0].t/1000)+'s';
+  Object.assign(o,{q1:a.q1||'',q2:a.q2||'',q3:a.q3||'',q4:a.q4||'',q5:a.q5||''});
+  if(r.v==='B'&&r.filled)o.fieldUse=r.filled==='yes'?'used':'skipped';
+  o.auto={outcome:r.outcome,elapsed:r.elapsed,clicks:clicks.length,events:r.events||[]};
+  return p}
 
 function embedUrl(u){try{const x=new URL(u);if(x.hostname.endsWith('figma.com')&&x.pathname.startsWith('/proto')){x.hostname='embed.figma.com';x.searchParams.set('embed-host','share');x.searchParams.set('hide-ui','1');x.searchParams.set('hotspot-hints','0');return x.toString()}return u}catch(e){return u}}
 
@@ -214,10 +229,13 @@ function vRun(){
      <div class="mute" style="text-align:center">هشدار سقف ۳ دقیقه · زمان فقط در «تکمیل بدون کمک» مقایسه می‌شود</div></div>
     <div class="card"><h2>رویدادها</h2><div class="ev">${Object.entries(EVT).filter(([k])=>k!=='note'&&(k!=='pausefill'||isB)).map(([k,l])=>`<button class="btn" data-ev="${k}">${l}</button>`).join('')}<button class="btn" data-ev="note">+ یادداشت</button></div>
      <div class="log" id="log"></div></div>
+    <div class="card"><h2>ردگیری خودکار کلیک و زمان</h2><div id="trk" class="log" style="max-height:none"></div>
+     <div class="row"><button class="btn" id="trr">تازه‌سازی</button><button class="btn pri" id="tri">وارد کردن به برگه</button></div>
+     <p class="mute">فقط وقتی کار می‌کند که پروتوتایپ با دکمهٔ «باز کردن/نمایش داخلی» همین صفحه باز شده باشد (هم‌مرورگر). نتیجهٔ شرکت‌کنندهٔ راه‌دور از «ورود نتایج» در تب ۱ می‌آید.</p></div>
     <div class="card"><h2>پرونده</h2>
      <div class="row"><button class="btn" id="op" ${url?'':'disabled'}>باز کردن پروتوتایپ در تب جدید</button><button class="btn" id="emb" ${url?'':'disabled'}>${S.embed?'بستن':'نمایش داخلی'}</button></div>
      ${url?'':'<p class="warn">لینک این نسخه در تب ۱ ثبت نشده.</p>'}
-     ${S.embed&&url?`<iframe src="${esc(embedUrl(url))}" allowfullscreen></iframe>`:''}</div>
+     ${S.embed&&url?`<iframe src="${esc(goUrl(p))}" allowfullscreen></iframe>`:''}</div>
    </div>
    <div>
     <div class="card"><h2>اسکریپت</h2>${steps.map(([h,t])=>`<details ${h[0]==='۳'?'open':''}><summary><b>${h}</b></summary><div class="script">${esc(t)}</div></details>`).join('')}</div>
@@ -240,7 +258,7 @@ function vRun(){
     </div></div></div>`;
   $('#tv').onclick=()=>{S.showVer=!S.showVer;save();render()};
   $('#back').onclick=()=>{S.tab='people';render()};
-  $('#op').onclick=()=>window.open(url,'_blank','noopener');
+  $('#op').onclick=()=>window.open(goUrl(p),'_blank','noopener');
   $('#emb').onclick=()=>{S.embed=!S.embed;save();render()};
   document.querySelectorAll('[data-f]').forEach(el=>el.onchange=()=>{o[el.dataset.f]=el.type==='number'?(el.value===''?null:+el.value):el.value;save()});
   $('#st').onclick=()=>{o.startedAt=Date.now();o.stoppedAt=null;o.elapsed=null;o.events=[];save();render()};
@@ -250,6 +268,20 @@ function vRun(){
     const k=b.dataset.ev;let note='';if(k==='note'||k==='inactive'){note=prompt(k==='inactive'?'کدام بخش و چه انتظاری داشت؟':'یادداشت')||''}
     o.events.push({t:o.startedAt?Math.round((Date.now()-o.startedAt)/1000):null,type:k,note});save();drawLog()});
   drawLog();
+  const drawTrk=()=>{const ev=lsGet('bt-'+p.code)||[],res=lsGet('bt-result-'+p.code);
+    const cl=ev.filter(e=>e.type==='click'),fb=ev.find(e=>e.type==='firstclick_blur'),dn=ev.find(e=>e.type==='done_auto'||e.type==='done');
+    $('#trk').innerHTML=!ev.length&&!res?'<span class="mute">هنوز داده‌ای نیست.</span>':
+     '<div>کلیک‌ها: <b>'+cl.length+'</b>'+(cl[0]?' · اولین: '+esc(cl[0].node)+' در '+mmss(cl[0].t/1000):(fb?' · اولین کلیک (تقریبی) در '+mmss(fb.t/1000):''))+'</div>'+
+     (dn?'<div>رسیدن به پایان در '+mmss(dn.t/1000)+'</div>':'')+(res?'<div>پاسخ‌نامه ثبت شده · نتیجه: '+esc(res.outcome)+'</div>':'')+
+     (cl.length?'<div class="mute">'+cl.slice(0,12).map(e=>esc(e.node)+'@'+mmss(e.t/1000)).join(' · ')+'</div>':'')};
+  drawTrk();$('#trr').onclick=drawTrk;
+  $('#tri').onclick=()=>{const res=lsGet('bt-result-'+p.code),ev=lsGet('bt-'+p.code)||[];
+    if(res){applyResult(res)}else{
+      const cl=ev.filter(e=>e.type==='click'),dn=ev.find(e=>e.type==='done_auto'||e.type==='done');
+      if(cl[0])o.firstClick=cl[0].node+' @'+Math.round(cl[0].t/1000)+'s';
+      if(dn&&o.elapsed==null)o.elapsed=Math.round(dn.t/1000);
+      o.auto={clicks:cl.length,events:ev}}
+    save();render()};
   const tm=$('#tm');
   const paint=()=>{const e=o.stoppedAt?o.elapsed:o.startedAt?(Date.now()-o.startedAt)/1000:0;tm.textContent=mmss(e);tm.classList.toggle('over',e>=180)};
   paint();tick=setInterval(()=>{if(o.startedAt&&!o.stoppedAt)paint()},500);
@@ -309,9 +341,9 @@ function vRes(){
 }
 
 /* ---------- export ---------- */
-function toCSV(){const h=['code','version','pilot','experience','outcome','elapsed_s','first_click','first_method','field_use','mandatory','expectation','helped','trouble','events','pause_note','quote','q1','q2','q3','q4','q5'];
+function toCSV(){const h=['code','version','pilot','experience','outcome','elapsed_s','first_click','first_method','field_use','mandatory','expectation','helped','trouble','events','pause_note','quote','q1','q2','q3','q4','q5','auto_clicks'];
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  return [h.join(','),...S.participants.map(p=>{const o=p.obs;return [p.code,p.version,p.pilot?1:0,p.exp?1:0,o.outcome,o.elapsed,o.firstClick,o.firstMethod,o.fieldUse,o.mandatory,o.expectation,o.helped,trouble(p)?1:0,o.events.map(e=>`${e.t??''}s:${e.type}${e.note?'('+e.note+')':''}`).join(' | '),o.pauseNote,o.quote,o.q1,o.q2,o.q3,o.q4,o.q5].map(q).join(',')})].join('\n')}
+  return [h.join(','),...S.participants.map(p=>{const o=p.obs;return [p.code,p.version,p.pilot?1:0,p.exp?1:0,o.outcome,o.elapsed,o.firstClick,o.firstMethod,o.fieldUse,o.mandatory,o.expectation,o.helped,trouble(p)?1:0,o.events.map(e=>`${e.t??''}s:${e.type}${e.note?'('+e.note+')':''}`).join(' | '),o.pauseNote,o.quote,o.q1,o.q2,o.q3,o.q4,o.q5,o.auto?o.auto.clicks:''].map(q).join(',')})].join('\n')}
 function dl(n,t,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click()}
 
 render();

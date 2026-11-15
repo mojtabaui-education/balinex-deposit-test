@@ -3,14 +3,90 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>نمونهٔ آزمایشی واریز</title>
-<style>html,body{margin:0;height:100%;background:#fff;font:15px Tahoma,sans-serif}iframe{border:0;width:100%;height:100%;display:block}.m{display:grid;place-items:center;height:100%;color:#555;padding:24px;text-align:center}</style></head>
-<body><div id="r"></div>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#f6f7fb;color:#1b2033;font:15px/1.8 Vazirmatn,Tahoma,sans-serif}
+.pg{max-width:620px;margin:0 auto;padding:28px 20px}
+.box{background:#fff;border:1px solid #e1e4ee;border-radius:14px;padding:20px;margin-bottom:14px}
+.mis{background:#f0f2fb;border-inline-start:4px solid #374785;padding:10px 14px;border-radius:6px;margin:10px 0}
+button{font:inherit;cursor:pointer;border:1px solid #c9cde0;background:#fff;color:#1b2033;padding:9px 18px;border-radius:9px}
+button.p{background:#374785;color:#fff;border-color:#374785}
+label{display:block;margin:14px 0 4px;font-weight:600}
+textarea{width:100%;min-height:80px;font:inherit;border:1px solid #c9cde0;border-radius:8px;padding:8px 10px}
+.opt{display:flex;gap:16px}.opt label{font-weight:400;margin:0;display:flex;gap:6px;align-items:center}
+#task{display:none;height:100%;flex-direction:column}
+#bar{display:flex;gap:10px;align-items:center;justify-content:center;padding:8px;background:#fff;border-bottom:1px solid #e1e4ee;flex-wrap:wrap}
+#bar .t{font-size:13px;color:#6b7285}
+iframe{border:0;width:100%;flex:1;display:block;background:#fff}
+.m{display:grid;place-items:center;height:100%;color:#555;padding:24px;text-align:center}
+</style></head>
+<body>
+<div id="msg" class="m" style="display:none"></div>
+
+<div id="intro" class="pg" style="display:none"><div class="box">
+ <h2 style="margin-top:0">امروز داریم طرح صفحهٔ واریز رو امتحان می‌کنیم</h2>
+ <p>لطفاً مثل وقتی که خودت از سایت استفاده می‌کنی پیش برو. این فقط نمونهٔ آزمایشیه؛ نیازی به انتقال پول یا وارد کردن اطلاعات بانکی واقعی نیست. بعضی بخش‌ها در نمونه فعال نیستند.</p>
+ <div class="mis"><b>مأموریت:</b> فرض کن می‌خوای کیف پول بالینکست رو با ۱٬۰۰۰٬۰۰۰ تومان شارژ کنی. یک کارت بانکی از قبل در حسابت ثبت شده. از همین صفحه شروع کن و تا جایی پیش برو که اطلاعات لازم برای انتقال رو داشته باشی. وقتی به اون مرحله رسیدی، دکمهٔ بالای صفحه رو بزن.</div>
+ <p style="color:#6b7285;font-size:13px">بهتر است روی کامپیوتر باشی. با زدن «شروع» تست آغاز می‌شود.</p>
+ <button class="p" id="go">شروع</button></div></div>
+
+<div id="task"><div id="bar"><span class="t">وقتی اطلاعات لازم برای انتقال رو داشتی:</span>
+ <button class="p" id="done">به اطلاعات انتقال رسیدم</button><button id="giveup">نمی‌تونم ادامه بدم</button></div>
+ <iframe id="fr" allowfullscreen></iframe></div>
+
+<div id="qs" class="pg" style="display:none"><div class="box"><h2 style="margin-top:0">چند سؤال کوتاه</h2><div id="qbody"></div>
+ <button class="p" id="send" style="margin-top:18px">ثبت و پایان</button></div></div>
+
+<div id="end" class="pg" style="display:none"><div class="box"><h2 style="margin-top:0">ممنون از وقتی که گذاشتی</h2><p id="endmsg">پاسخ‌هایت ثبت شد. می‌توانی این صفحه را ببندی.</p></div></div>
+
 <script src="config.js"></script>
 <script>
-const c=window.TEST_CONFIG||{},k=new URLSearchParams(location.search).get('c');
-const u=k===c.codeA?c.urlA:k===c.codeB?c.urlB:'';
-const r=document.getElementById('r');
-if(!u){r.innerHTML='<div class="m">این لینک معتبر نیست یا هنوز فعال نشده.</div>';}
-else{try{const x=new URL(u);if(x.hostname.endsWith('figma.com')&&x.pathname.startsWith('/proto')){x.hostname='embed.figma.com';x.searchParams.set('embed-host','share');x.searchParams.set('hide-ui','1');x.searchParams.set('hotspot-hints','0');x.searchParams.set('footer','false')}
- r.innerHTML='<iframe allowfullscreen></iframe>';r.firstChild.src=x.toString();document.body.style.height='100vh';r.style.height='100%'}catch(e){r.innerHTML='<div class="m">لینک نامعتبر</div>'}}
+const C=window.TEST_CONFIG||{},Q=new URLSearchParams(location.search);
+const code=Q.get('c'),mod=Q.get('m')==='1';
+const ver=code===C.codeA?'A':code===C.codeB?'B':'';
+const u=ver==='A'?C.urlA:ver==='B'?C.urlB:'';
+const pid=Q.get('p')||('R'+Math.random().toString(36).slice(2,7).toUpperCase());
+const $=id=>document.getElementById(id);
+const show=id=>['msg','intro','task','qs','end'].forEach(k=>$(k).style.display=k===id?(k==='task'?'flex':'block'):'none');
+let t0=null,events=[],firstBlurDone=false,finished=false;
+const KEY='bt-'+pid;
+const log=(type,node)=>{if(t0==null)return;events.push({t:Date.now()-t0,type,node:node||''});try{localStorage.setItem(KEY,JSON.stringify(events))}catch(e){}};
+function frameUrl(){const x=new URL(u);if(x.hostname.endsWith('figma.com')&&x.pathname.startsWith('/proto')){x.hostname='embed.figma.com';x.searchParams.set('embed-host','share');x.searchParams.set('hide-ui','1');x.searchParams.set('hotspot-hints','0');x.searchParams.set('footer','false');if(C.clientId)x.searchParams.set('client-id',C.clientId)}return x.toString()}
+
+if(!u){$('msg').textContent='این لینک معتبر نیست یا هنوز فعال نشده.';show('msg')}
+else{
+  window.addEventListener('message',e=>{
+    let h='';try{h=new URL(e.origin).hostname}catch(x){}
+    if(!/figma\.com$/.test(h))return;
+    const d=e.data||{},x=d.data||{},ty=d.type;
+    if(ty==='MOUSE_PRESS_OR_RELEASE')log('click',x.targetNodeId||'');
+    else if(ty==='PRESENTED_NODE_CHANGED'){const n=x.presentedNodeId||'';log('node',n);if((C.doneNodeIds||[]).includes(n))log('done_auto',n)}
+  });
+  window.addEventListener('blur',()=>{if(!firstBlurDone&&t0!=null&&document.activeElement===$('fr')){firstBlurDone=true;if(!events.some(e=>e.type==='click'))log('firstclick_blur')}});
+  function startTask(){events=[];t0=Date.now();log('start');$('fr').src=frameUrl();show('task');
+    if(!mod)setTimeout(()=>{if(!finished)end('timeout')},180000)}
+  if(mod){$('bar').style.display='none';startTask()}
+  else{show('intro');$('go').onclick=startTask}
+  $('done').onclick=()=>end('done');$('giveup').onclick=()=>end('gaveup');
+}
+
+let outcome='',elapsed=null;
+function end(o){if(finished)return;finished=true;outcome=o;elapsed=Math.round((Date.now()-t0)/1000);log(o);buildQs();show('qs');
+  if(o==='timeout')alert('سه دقیقه گذشت؛ می‌رویم سراغ چند سؤال کوتاه.')}
+
+const qList=()=>{const a=[['q1','قدم بعدی‌ات در دنیای واقعی چی بود؟'],['q2','کجای این مسیر برات مبهم بود؟']];
+  if(ver==='B')a.push(['q3','به نظرت فیلد مبلغ چه کاری انجام می‌داد؟'],['q4','فکر می‌کردی بدون پر کردنش می‌تونی ادامه بدی؟']);return a};
+function buildQs(){let h=qList().map(([k,t])=>`<label>${t}</label><textarea data-k="${k}"></textarea>`).join('');
+  if(ver==='B')h+=`<label>مبلغ را وارد کردی؟</label><div class="opt"><label><input type="radio" name="fl" value="yes">بله</label><label><input type="radio" name="fl" value="no">خیر</label></div>
+   <div id="q5w" style="display:none"><label>مبلغی که وارد کردی، فکر می‌کنی کجا استفاده می‌شه؟</label><textarea data-k="q5"></textarea></div>`;
+  $('qbody').innerHTML=h;
+  document.querySelectorAll('[name=fl]').forEach(r=>r.onchange=()=>{$('q5w').style.display=r.value==='yes'&&r.checked?'block':'none'})}
+
+$('send').onclick=async()=>{
+  const ans={};document.querySelectorAll('[data-k]').forEach(t=>ans[t.dataset.k]=t.value.trim());
+  const fl=document.querySelector('[name=fl]:checked');
+  const r={p:pid,v:ver,outcome,elapsed,events,answers:ans,filled:fl?fl.value:'',ts:new Date().toISOString(),ua:navigator.userAgent,vw:innerWidth};
+  try{localStorage.setItem('bt-result-'+pid,JSON.stringify(r))}catch(e){}
+  if(C.endpoint){try{await fetch(C.endpoint,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(r)})}catch(e){}}
+  else $('endmsg').textContent='پاسخ‌هایت ثبت شد. لطفاً به مجری اعلام کن که تمام شد.';
+  show('end')};
 </script></body></html>
