@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>کنسول تست واریز بالینکس</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#1b2033;--mute:#6b7285;--line:#e1e4ee;--pri:#374785;--pri-ink:#fff;--ok:#15803d;--bad:#b91c1c;--warn:#b45309;--a:#0e7490;--b:#7c3aed}
+@media (prefers-color-scheme:dark){:root{--bg:#12141c;--card:#1b1e2a;--ink:#e8eaf3;--mute:#9aa1b5;--line:#2c3144;--pri:#7c8fe0;--pri-ink:#10131f;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--a:#22d3ee;--b:#a78bfa}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 Vazirmatn,Tahoma,"Segoe UI",sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+header h1{font-size:16px;margin:0;margin-inline-end:auto}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:1px solid transparent;color:var(--mute);padding:6px 12px;border-radius:8px;cursor:pointer;font:inherit}
+nav button.on{background:var(--pri);color:var(--pri-ink)}
+main{max-width:1180px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 10px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:820px){.g2,.g3{grid-template-columns:1fr}}
+label{display:block;font-size:13px;color:var(--mute);margin:8px 0 3px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+textarea{min-height:60px;resize:vertical}
+input[type=checkbox]{width:auto}
+button.btn{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:8px}
+button.btn:hover{border-color:var(--pri)}
+button.pri{background:var(--pri);color:var(--pri-ink);border-color:var(--pri)}
+button.danger{color:var(--bad)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-block;padding:1px 10px;border-radius:99px;font-size:12px;font-weight:700;color:#fff}
+.pA{background:var(--a)}.pB{background:var(--b)}
+.mute{color:var(--mute);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+th{color:var(--mute);font-weight:600;font-size:13px}
+tr.sel{background:color-mix(in srgb,var(--pri) 12%,transparent)}
+.timer{font-size:44px;font-weight:800;font-variant-numeric:tabular-nums;direction:ltr;text-align:center}
+.timer.over{color:var(--bad)}
+.script{background:var(--bg);border-inline-start:4px solid var(--pri);padding:8px 12px;border-radius:6px;margin:6px 0;white-space:pre-wrap}
+.ev{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.log{max-height:170px;overflow:auto;font-size:13px;direction:rtl}
+.log div{padding:2px 0;border-bottom:1px dashed var(--line)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.verdict{font-size:20px;font-weight:800;padding:12px 16px;border-radius:10px;border:2px solid var(--line)}
+.v-keep{border-color:var(--ok);color:var(--ok)}.v-del{border-color:var(--bad);color:var(--bad)}.v-def{border-color:var(--warn);color:var(--warn)}
+iframe{width:100%;height:640px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.chk{display:flex;gap:8px;align-items:flex-start;padding:4px 0}
+.chk input{margin-top:6px}
+.hide{display:none!important}
+.big{font-size:26px;font-weight:800}
+</style>
+</head>
+<body>
+<header>
+  <h1>کنسول تست واریز · بالینکس</h1>
+  <nav id="nav"></nav>
+</header>
+<main id="app"></main>
+
+<script src="config.js"></script>
+<script>
+/* ---------- state ---------- */
+const KEY='balinex-deposit-test-v1';
+const DEF={config:{urlA:'',urlB:'',defaultDecision:'',approver:'',approvedDate:'',gap:2,locked:false},participants:[],sel:null,tab:'setup',showVer:false,embed:false};
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||structuredClone(DEF)}catch(e){S=structuredClone(DEF)}
+S.config={...DEF.config,...S.config};
+const TC=window.TEST_CONFIG||{};if(!S.config.urlA&&TC.urlA)S.config.urlA=TC.urlA;if(!S.config.urlB&&TC.urlB)S.config.urlB=TC.urlB;
+const base=location.href.replace(/[^/]*$/,'')+'go.html?c=';
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const P=()=>S.participants.find(p=>p.id===S.sel);
+const real=()=>S.participants.filter(p=>!p.pilot);
+const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const mmss=s=>{s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')};
+
+/* ---------- tabs ---------- */
+const TABS=[['setup','۱ · قاعده و راه‌اندازی'],['people','۲ · شرکت‌کننده‌ها'],['run','۳ · اجرای جلسه'],['res','۴ · نتیجه و تصمیم']];
+function renderNav(){$('#nav').innerHTML=TABS.map(([k,l])=>`<button class="${S.tab===k?'on':''}" data-t="${k}">${l}</button>`).join('');
+  $('#nav').onclick=e=>{const t=e.target.dataset.t;if(t){S.tab=t;save();render()}}}
+
+/* ---------- randomisation (stratified by prior deposit experience) ---------- */
+function assign(exp,pilot){
+  const pool=S.participants.filter(p=>!p.pilot===!pilot&&!pilot);
+  if(pilot){return S.participants.filter(p=>p.pilot).length%2?'B':'A'}
+  const cnt=(v,filter)=>real().filter(p=>p.version===v&&filter(p)).length;
+  const A=cnt('A',()=>true),B=cnt('B',()=>true);
+  if(A>=6)return 'B'; if(B>=6)return 'A';
+  const sa=cnt('A',p=>p.exp===exp),sb=cnt('B',p=>p.exp===exp);
+  if(sa!==sb)return sa<sb?'A':'B';
+  if(A!==B)return A<B?'A':'B';
+  return Math.random()<.5?'A':'B';
+}
+
+/* ---------- views ---------- */
+function render(){renderNav();({setup:vSetup,people:vPeople,run:vRun,res:vRes}[S.tab])()}
+
+function vSetup(){
+  const c=S.config,L=c.locked;
+  $('#app').innerHTML=`
+  <div class="card"><h2>قاعدهٔ تصمیم (بند ۳ سند) — قبل از جذب شرکت‌کننده‌ها قفل شود</h2>
+   <p class="mute">با قفل‌شدن، ثبت شرکت‌کنندهٔ واقعی فعال می‌شود و این بخش دیگر قابل‌ویرایش نیست.</p>
+   <div class="script"><b>نگه‌داشتن:</b> دست‌کم ۳ نفر از ۶ نفر گروه B بدون راهنمایی توضیح دهند فیلد به فهم قدم بعدی کمک کرده، و تعداد افرادی که مکث/برگشت/درخواست کمک داشتند در B بیشتر از A نباشد.
+<b>حذف:</b> دست‌کم ۲ نفر از B فیلد را اجباری تصور کنند، برای پرکردنش مکث کنند یا انتظار ثبت/بررسی مبلغ داشته باشند؛ یا B به‌طور مشخص کمک/برگشت بیشتری از A لازم داشته باشد.
+<b>مساوی/نامشخص:</b> تصمیم پیش‌فرض.</div>
+   <div class="grid g2">
+    <div><label>تصمیم پیش‌فرض برای حالت مساوی/نامشخص *</label>
+     <select id="def" ${L?'disabled':''}><option value="">— انتخاب کنید —</option>
+      ${['نگه‌داشتن فیلد','حذف فیلد'].map(o=>`<option ${c.defaultDecision===o?'selected':''}>${o}</option>`).join('')}</select></div>
+    <div><label>«به‌طور مشخص بیشتر» یعنی چند نفر اختلاف (تعداد افراد دارای مکث/برگشت/کمک، B منهای A)</label>
+     <input id="gap" type="number" min="1" max="6" value="${c.gap}" ${L?'disabled':''}>
+     <div class="mute">فرض من: ۲ نفر. سند عدد را مشخص نکرده؛ قبل از قفل با تیم نهایی شود.</div></div>
+    <div><label>تأییدکننده *</label><input id="appr" value="${esc(c.approver)}" ${L?'disabled':''}></div>
+    <div><label>تاریخ *</label><input id="adate" value="${esc(c.approvedDate)}" placeholder="مثلاً ۱۴۰۵/۰۸/۲۴" ${L?'disabled':''}></div>
+   </div>
+   <p class="mute">اگر هر دو شرط «نگه‌داشتن» و «حذف» هم‌زمان برقرار شوند، سند تکلیفی نگفته؛ کنسول آن را «تعارض» نشان می‌دهد و تصمیم پیش‌فرض اعمال می‌شود.</p>
+   <div class="row"><button class="btn pri" id="lock" ${L?'disabled':''}>${L?'قفل شده ✓':'تأیید و قفل قاعده'}</button>
+   ${L?`<button class="btn danger" id="unlock">باز کردن قفل (فقط پیش از جلسهٔ واقعی)</button>`:''}</div>
+  </div>
+  <div class="card"><h2>لینک پروتوتایپ‌ها</h2>
+   <p class="mute">لینک‌های مخصوص تست (رابط فیگما مخفی، نقاط کلیک خاموش) را بگذارید. اگر لینک <code>figma.com/proto</code> باشد، برای نمایش داخلی به حالت embed تبدیل می‌شود.</p>
+   <div class="grid g2"><div><label>نسخهٔ A (بدون فیلد)</label><input id="uA" dir="ltr" value="${esc(c.urlA)}"></div>
+   <div><label>نسخهٔ B (با فیلد)</label><input id="uB" dir="ltr" value="${esc(c.urlB)}"></div></div>
+   <p class="mute">فایل طراحی: <a href="https://www.figma.com/design/gBIhqkV3ZxTIiVsNJlfBA8/Wallet---Redesign?node-id=12158-16458" target="_blank" rel="noopener">Wallet — Redesign</a></p>
+  </div>
+  <div class="card"><h2>لینک ارسال به شرکت‌کننده‌ها</h2>
+   <p class="mute">فقط پروتوتایپ را نشان می‌دهد؛ نام نسخه در صفحه نیست. لینک هر نسخه را به شرکت‌کنندهٔ همان نسخه بدهید. لینک پروتوتایپ‌ها باید در config.js هم ثبت شود.</p>
+   <label>نسخهٔ A</label><input readonly dir="ltr" value="${esc(base+(TC.codeA||''))}" onclick="this.select()">
+   <label>نسخهٔ B</label><input readonly dir="ltr" value="${esc(base+(TC.codeB||''))}" onclick="this.select()"></div>
+  <div class="card"><h2>پیش از شروع (بند ۴ و ۶ سند)</h2>
+   <p class="mute">تیک‌ها ذخیره می‌شوند.</p>
+   ${[['pre1','هر دو لینک را با ۱۳ گام جدول بند ۴ امتحان کردم و نتیجه‌ها مطابق انتظار بود'],['pre2','برای هر نسخه یک اجرای آزمایشی گرفتم (در برنامه با تیک «آزمایشی» ثبت شود و وارد مقایسه نمی‌شود)'],['pre3','لینک/متن مأموریت/برگه نیاز به اصلاحی نداشت (یا اصلاح شد)'],['pre4','۱۲ شرکت‌کننده (۶ نفر در هر نسخه) از کاربران فعلی یا بالقوه جذب شده‌اند']]
+    .map(([k,t])=>`<label class="chk" style="color:var(--ink);font-size:14px"><input type="checkbox" data-pre="${k}" ${S.pre?.[k]?'checked':''}>${t}</label>`).join('')}
+  </div>
+  <div class="card"><h2>داده</h2><div class="row">
+   <button class="btn" id="exj">خروجی JSON</button><button class="btn" id="exc">خروجی CSV</button>
+   <label class="btn" style="margin:0">ورود JSON<input type="file" id="imp" accept=".json" class="hide"></label>
+   <button class="btn danger" id="reset">پاک‌کردن همه</button></div>
+   <p class="mute">داده فقط در مرورگر همین سیستم ذخیره می‌شود. بعد از هر روز آزمون خروجی بگیرید.</p></div>`;
+  if(!L){['def','gap','appr','adate'].forEach(id=>$('#'+id).onchange=()=>{c.defaultDecision=$('#def').value;c.gap=+$('#gap').value||2;c.approver=$('#appr').value;c.approvedDate=$('#adate').value;save()})}
+  $('#uA').onchange=e=>{c.urlA=e.target.value.trim();save()};$('#uB').onchange=e=>{c.urlB=e.target.value.trim();save()};
+  $('#lock').onclick=()=>{c.defaultDecision=$('#def').value;c.approver=$('#appr').value;c.approvedDate=$('#adate').value;c.gap=+$('#gap').value||2;
+    if(!c.defaultDecision||!c.approver||!c.approvedDate)return alert('تصمیم پیش‌فرض، تأییدکننده و تاریخ را کامل کنید.');c.locked=true;save();render()};
+  if($('#unlock'))$('#unlock').onclick=()=>{if(real().length&&!confirm('جلسهٔ واقعی ثبت شده؛ تغییر قاعده بعد از دیدن نتیجه اعتبار تست را از بین می‌برد. ادامه؟'))return;c.locked=false;save();render()};
+  document.querySelectorAll('[data-pre]').forEach(i=>i.onchange=()=>{S.pre={...S.pre,[i.dataset.pre]:i.checked};save()});
+  $('#exj').onclick=()=>dl('balinex-test.json',JSON.stringify(S,null,1),'application/json');
+  $('#exc').onclick=()=>dl('balinex-test.csv','﻿'+toCSV(),'text/csv');
+  $('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{S=JSON.parse(t);save();render()}catch(x){alert('فایل نامعتبر')}})};
+  $('#reset').onclick=()=>{if(confirm('همهٔ داده پاک شود؟')){S=structuredClone(DEF);save();render()}};
+}
+
+function vPeople(){
+  const c=S.config;
+  $('#app').innerHTML=`
+  ${!c.locked?`<div class="card warn">قاعدهٔ تصمیم هنوز قفل نشده؛ فقط اجرای آزمایشی مجاز است.</div>`:''}
+  <div class="card"><h2>شرکت‌کنندهٔ جدید</h2>
+   <div class="grid g3"><div><label>شناسه (مثلاً P01)</label><input id="code" value="P${String(real().length+1).padStart(2,'0')}"></div>
+   <div><label>تجربهٔ قبلی واریز (برای متعادل‌سازی)</label><select id="exp"><option value="1">دارد</option><option value="0">ندارد</option></select></div>
+   <div><label>نوع جلسه</label><select id="pil"><option value="0" ${c.locked?'':'disabled'}>اصلی</option><option value="1" ${c.locked?'':'selected'}>آزمایشی (خارج از مقایسه)</option></select></div></div>
+   <div class="row" style="margin-top:10px"><button class="btn pri" id="add">ثبت و تخصیص نسخه</button>
+   <span class="mute">تخصیص تصادفی است و در هر لایهٔ تجربه تا حد ممکن متعادل می‌ماند؛ سقف ۶ نفر برای هر نسخه.</span></div></div>
+  <div class="card"><h2>فهرست (${fa(real().length)} از ۱۲)</h2>
+   <table><tr><th>شناسه</th><th>نسخه</th><th>تجربه</th><th>نوع</th><th>نتیجه</th><th></th></tr>
+   ${S.participants.map(p=>`<tr class="${p.id===S.sel?'sel':''}"><td>${esc(p.code)}</td>
+    <td><span class="pill p${p.version}">${p.version}</span></td><td>${p.exp?'دارد':'ندارد'}</td><td>${p.pilot?'آزمایشی':'اصلی'}</td>
+    <td>${OUT[p.obs.outcome]||'—'}</td>
+    <td class="row"><button class="btn" data-run="${p.id}">اجرا</button><button class="btn danger" data-del="${p.id}">حذف</button></td></tr>`).join('')||'<tr><td colspan=6 class="mute">هنوز کسی ثبت نشده.</td></tr>'}</table></div>`;
+  $('#add').onclick=()=>{
+    const pilot=$('#pil').value==='1';
+    if(!pilot&&real().length>=12)return alert('۱۲ نفر کامل است.');
+    const exp=$('#exp').value==='1',v=assign(exp,pilot);
+    const p={id:'p'+Date.now(),code:$('#code').value.trim()||'P?',version:v,exp,pilot,obs:blank()};
+    S.participants.push(p);S.sel=p.id;save();
+    alert(`${p.code} → نسخهٔ ${v}`);S.tab='run';save();render()};
+  $('#app').onclick=e=>{const r=e.target.dataset.run,d=e.target.dataset.del;
+    if(r){S.sel=r;S.tab='run';save();render()}
+    if(d&&confirm('حذف شود؟')){S.participants=S.participants.filter(p=>p.id!==d);if(S.sel===d)S.sel=null;save();render()}};
+}
+
+const OUT={unassisted:'تکمیل بدون کمک',assisted:'تکمیل با کمک',incomplete:'ناتمام',limit:'محدودیت پروتوتایپ'};
+const blank=()=>({startedAt:null,stoppedAt:null,elapsed:null,events:[],firstClick:'',firstMethod:'',outcome:'',fieldUse:'',mandatory:'',expectation:'',helped:'',quote:'',pauseNote:'',q1:'',q2:'',q3:'',q4:'',q5:''});
+const EVT={click:'اولین کلیک',pause:'مکث',pausefill:'مکث برای پرکردن فیلد',back:'برگشت (مسیرنما)',help:'درخواست کمک',inactive:'کلیک روی بخش غیرفعال',note:'یادداشت'};
+let tick=null;
+
+function embedUrl(u){try{const x=new URL(u);if(x.hostname.endsWith('figma.com')&&x.pathname.startsWith('/proto')){x.hostname='embed.figma.com';x.searchParams.set('embed-host','share');x.searchParams.set('hide-ui','1');x.searchParams.set('hotspot-hints','0');return x.toString()}return u}catch(e){return u}}
+
+function vRun(){
+  clearInterval(tick);
+  const p=P();
+  if(!p){$('#app').innerHTML=`<div class="card">شرکت‌کننده‌ای انتخاب نشده. <button class="btn pri" id="go">به فهرست</button></div>`;$('#go').onclick=()=>{S.tab='people';render()};return}
+  const o=p.obs,url=p.version==='A'?S.config.urlA:S.config.urlB,isB=p.version==='B';
+  const steps=[
+   ['۱ · آماده‌سازی','پیش از ورود: لینک نسخهٔ مربوط را باز کنید و R بزنید تا صفحهٔ «واریز تومان» از ابتدا و بدون رابط فیگما دیده شود. نام نسخه و فایل را نشان ندهید.'],
+   ['۲ · متن شروع','«امروز داریم طرح صفحهٔ واریز رو امتحان می‌کنیم. لطفاً مثل وقتی که خودت از سایت استفاده می‌کنی پیش برو. این فقط نمونهٔ آزمایشیه؛ نیازی به انتقال پول یا وارد کردن اطلاعات بانکی واقعی نیست.»'],
+   ['۳ · مأموریت (بعد از خواندن، تایمر را شروع کنید)','«فرض کن می‌خوای کیف پول بالینکست رو با ۱٬۰۰۰٬۰۰۰ تومان شارژ کنی. یک کارت بانکی از قبل در حسابت ثبت شده. از همین صفحه شروع کن و تا جایی پیش برو که اطلاعات لازم برای انتقال رو داشته باشی. وقتی به اون مرحله رسیدی، بهم بگو.»'],
+   ['۴ · مشاهده','ثبت: اولین کلیک، اولین روش، توقف، برگشت، درخواست کمک. به مبلغ یا روش کارت‌به‌کارت اشاره نکنید. کلیک روی «واریز تومان» در مسیرنما = «برگشت».'],
+   ['۵ · موقعیت‌های خاص','درخواست کمک: فقط بپرسید «اگر تنها بودی، قدم بعدی‌ات چی بود؟»؛ راهنمایی مستقیم بعد از ثبت نتیجه.\nروش غیرفعال: خطا ندانید؛ یک بار بگویید «این بخش در نمونه فعال نیست؛ اگر بود، چه انتظاری داشتی؟»، پاسخ را ثبت و از همان صفحه ادامه دهید. با تکمیل کارت‌به‌کارت → «تکمیل با کمک»؛ وگرنه «محدودیت پروتوتایپ» (زمانش مقایسه نمی‌شود).\nسه دقیقه: اگر بعد از ۳ دقیقه به شمارهٔ کارت مقصد نرسید یا انصراف داد → «ناتمام» و برو گام ۷.'],
+   ['۶ · پایان مأموریت','وقتی شمارهٔ کارت مقصد را پیدا کرد و گفت برای انتقال از آن استفاده می‌کند، تایمر را متوقف کنید.'],
+   ['۷ · پرسش‌های بعد از مأموریت','از همه: «قدم بعدی‌ات در دنیای واقعی چی بود؟» و «کجای این مسیر برات مبهم بود؟»'+(isB?'\nگروه B: «به نظرت فیلد مبلغ چه کاری انجام می‌داد؟» و «فکر می‌کردی بدون پر کردنش می‌تونی ادامه بدی؟»\nاگر فیلد را پر کرد: «مبلغی که وارد کردی، فکر می‌کنی کجا استفاده می‌شه؟»':'')]];
+  $('#app').innerHTML=`
+  <div class="row" style="margin-bottom:10px"><b class="big">${esc(p.code)}</b>
+   <span class="pill p${p.version} ${S.showVer?'':'hide'}" id="vb">نسخهٔ ${p.version}</span>
+   <button class="btn" id="tv">${S.showVer?'مخفی کردن نسخه':'نمایش نسخه'}</button>
+   ${p.pilot?'<span class="pill" style="background:var(--warn)">آزمایشی — وارد مقایسه نمی‌شود</span>':''}
+   <button class="btn" id="back">فهرست</button></div>
+  <div class="grid g2">
+   <div>
+    <div class="card"><div class="timer" id="tm">00:00</div>
+     <div class="row" style="justify-content:center"><button class="btn pri" id="st">شروع (بعد از خواندن مأموریت)</button><button class="btn" id="sp">توقف و ثبت</button><button class="btn danger" id="rs">صفر</button></div>
+     <div class="mute" style="text-align:center">هشدار سقف ۳ دقیقه · زمان فقط در «تکمیل بدون کمک» مقایسه می‌شود</div></div>
+    <div class="card"><h2>رویدادها</h2><div class="ev">${Object.entries(EVT).filter(([k])=>k!=='note'&&(k!=='pausefill'||isB)).map(([k,l])=>`<button class="btn" data-ev="${k}">${l}</button>`).join('')}<button class="btn" data-ev="note">+ یادداشت</button></div>
+     <div class="log" id="log"></div></div>
+    <div class="card"><h2>پرونده</h2>
+     <div class="row"><button class="btn" id="op" ${url?'':'disabled'}>باز کردن پروتوتایپ در تب جدید</button><button class="btn" id="emb" ${url?'':'disabled'}>${S.embed?'بستن':'نمایش داخلی'}</button></div>
+     ${url?'':'<p class="warn">لینک این نسخه در تب ۱ ثبت نشده.</p>'}
+     ${S.embed&&url?`<iframe src="${esc(embedUrl(url))}" allowfullscreen></iframe>`:''}</div>
+   </div>
+   <div>
+    <div class="card"><h2>اسکریپت</h2>${steps.map(([h,t])=>`<details ${h[0]==='۳'?'open':''}><summary><b>${h}</b></summary><div class="script">${esc(t)}</div></details>`).join('')}</div>
+    <div class="card"><h2>برگهٔ مشاهده</h2>
+     <div class="grid g2"><div><label>اولین کلیک</label><input data-f="firstClick" value="${esc(o.firstClick)}"></div>
+      <div><label>اولین روش انتخاب‌شده</label><input data-f="firstMethod" value="${esc(o.firstMethod)}"></div></div>
+     <label>نتیجهٔ مأموریت</label><select data-f="outcome"><option value="">—</option>${Object.entries(OUT).map(([k,v])=>`<option value="${k}" ${o.outcome===k?'selected':''}>${v}</option>`).join('')}</select>
+     <label>زمان ثبت‌شده</label><input data-f="elapsed" type="number" value="${o.elapsed??''}" placeholder="ثانیه — با توقف تایمر پر می‌شود">
+     ${isB?`<div class="grid g2"><div><label>رفتار با فیلد</label><select data-f="fieldUse"><option value="">—</option>${[['used','استفاده کرد'],['skipped','رد کرد'],['unseen','ندید']].map(([k,v])=>`<option value="${k}" ${o.fieldUse===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div><label>اجباری تصور کرد؟</label><select data-f="mandatory"><option value="">—</option>${[['yes','بله'],['no','خیر'],['unk','نامشخص']].map(([k,v])=>`<option value="${k}" ${o.mandatory===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div><label>انتظار از مبلغ</label><select data-f="expectation"><option value="">—</option>${[['recorded','ثبت یا بررسی می‌شود'],['unused','استفاده نمی‌شود'],['unk','نمی‌داند']].map(([k,v])=>`<option value="${k}" ${o.expectation===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div><label>بدون راهنمایی گفت فیلد به فهم قدم بعدی کمک کرد؟</label><select data-f="helped"><option value="">—</option>${[['yes','بله'],['no','خیر']].map(([k,v])=>`<option value="${k}" ${o.helped===k?'selected':''}>${v}</option>`).join('')}</select></div></div>`:''}
+     <label>محل و دلیل احتمالی مکث/برگشت</label><textarea data-f="pauseNote">${esc(o.pauseNote)}</textarea>
+     <label>نقل‌قول کوتاه</label><textarea data-f="quote">${esc(o.quote)}</textarea>
+     <label>پاسخ: قدم بعدی در دنیای واقعی؟</label><textarea data-f="q1">${esc(o.q1)}</textarea>
+     <label>پاسخ: کجای مسیر مبهم بود؟</label><textarea data-f="q2">${esc(o.q2)}</textarea>
+     ${isB?`<label>پاسخ: فیلد مبلغ چه کاری می‌کرد؟</label><textarea data-f="q3">${esc(o.q3)}</textarea>
+      <label>پاسخ: بدون پرکردنش می‌توانستی ادامه بدهی؟</label><textarea data-f="q4">${esc(o.q4)}</textarea>
+      <label>پاسخ (اگر پر کرد): مبلغ کجا استفاده می‌شود؟</label><textarea data-f="q5">${esc(o.q5)}</textarea>`:''}
+    </div></div></div>`;
+  $('#tv').onclick=()=>{S.showVer=!S.showVer;save();render()};
+  $('#back').onclick=()=>{S.tab='people';render()};
+  $('#op').onclick=()=>window.open(url,'_blank','noopener');
+  $('#emb').onclick=()=>{S.embed=!S.embed;save();render()};
+  document.querySelectorAll('[data-f]').forEach(el=>el.onchange=()=>{o[el.dataset.f]=el.type==='number'?(el.value===''?null:+el.value):el.value;save()});
+  $('#st').onclick=()=>{o.startedAt=Date.now();o.stoppedAt=null;o.elapsed=null;o.events=[];save();render()};
+  $('#sp').onclick=()=>{if(!o.startedAt)return;o.stoppedAt=Date.now();o.elapsed=Math.round((o.stoppedAt-o.startedAt)/1000);save();render()};
+  $('#rs').onclick=()=>{if(confirm('تایمر و رویدادها صفر شود؟')){o.startedAt=o.stoppedAt=o.elapsed=null;o.events=[];save();render()}};
+  document.querySelectorAll('[data-ev]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.ev;let note='';if(k==='note'||k==='inactive'){note=prompt(k==='inactive'?'کدام بخش و چه انتظاری داشت؟':'یادداشت')||''}
+    o.events.push({t:o.startedAt?Math.round((Date.now()-o.startedAt)/1000):null,type:k,note});save();drawLog()});
+  drawLog();
+  const tm=$('#tm');
+  const paint=()=>{const e=o.stoppedAt?o.elapsed:o.startedAt?(Date.now()-o.startedAt)/1000:0;tm.textContent=mmss(e);tm.classList.toggle('over',e>=180)};
+  paint();tick=setInterval(()=>{if(o.startedAt&&!o.stoppedAt)paint()},500);
+  function drawLog(){$('#log').innerHTML=o.events.map(e=>`<div><b>${e.t==null?'—':mmss(e.t)}</b> · ${EVT[e.type]}${e.note?' — '+esc(e.note):''}</div>`).join('')||'<span class="mute">—</span>'}
+}
+
+/* ---------- results ---------- */
+const trouble=p=>p.obs.events.some(e=>['pause','pausefill','back','help'].includes(e.type));
+const objection=p=>p.obs.mandatory==='yes'||p.obs.expectation==='recorded'||p.obs.events.some(e=>e.type==='pausefill');
+const median=a=>{if(!a.length)return null;a=[...a].sort((x,y)=>x-y);const m=a.length>>1;return a.length%2?a[m]:(a[m-1]+a[m])/2};
+function stats(v){const g=real().filter(p=>p.version===v);
+  const n=k=>g.filter(p=>p.obs.outcome===k).length;
+  const t=g.filter(p=>p.obs.outcome==='unassisted'&&p.obs.elapsed!=null).map(p=>p.obs.elapsed);
+  return{g,n:g.length,done:g.filter(p=>p.obs.outcome).length,unassisted:n('unassisted'),assisted:n('assisted'),incomplete:n('incomplete'),limit:n('limit'),med:median(t),tn:t.length,trouble:g.filter(trouble).length,
+   mand:g.filter(p=>p.obs.mandatory==='yes').length,rec:g.filter(p=>p.obs.expectation==='recorded').length,objection:g.filter(objection).length,helped:g.filter(p=>p.obs.helped==='yes').length,
+   used:g.filter(p=>p.obs.fieldUse==='used').length,skipped:g.filter(p=>p.obs.fieldUse==='skipped').length,unseen:g.filter(p=>p.obs.fieldUse==='unseen').length}}
+
+function decide(a,b){
+  const c=S.config,final=a.done>=6&&b.done>=6;
+  const keep=b.helped>=3&&b.trouble<=a.trouble;
+  const del=b.objection>=2||(b.trouble-a.trouble>=c.gap);
+  let res,why;
+  if(keep&&del){res='تعارض → '+c.defaultDecision;why='هر دو شرط هم‌زمان برقرارند؛ سند تکلیفی نگفته، تصمیم پیش‌فرض اعمال شد. بهتر است تیم همین را رسمی کند.';}
+  else if(keep){res='نگه‌داشتن فیلد';why='شرط نگه‌داشتن برقرار است.'}
+  else if(del){res='حذف فیلد';why='شرط حذف برقرار است.'}
+  else{res=c.defaultDecision+' (پیش‌فرض)';why='هیچ‌یک از دو شرط برقرار نیست.'}
+  return{res,why,keep,del,final,cls:keep&&!del?'v-keep':del&&!keep?'v-del':'v-def'}}
+
+function vRes(){
+  const A=stats('A'),B=stats('B'),d=decide(A,B),c=S.config;
+  const m=s=>s==null?'—':fa(s)+' ثانیه';
+  const row=(l,a,b)=>`<tr><td>${l}</td><td>${a}</td><td>${b}</td></tr>`;
+  $('#app').innerHTML=`
+  <div class="card"><h2>تصمیم طبق قاعدهٔ قفل‌شده ${d.final?'':'<span class="warn">(موقت — جلسات کامل نیست)</span>'}</h2>
+   ${c.locked?'':'<p class="warn">قاعده هنوز قفل نشده؛ نتیجه معتبر نیست.</p>'}
+   <div class="verdict ${d.cls}">${esc(d.res)}</div><p class="mute">${d.why}</p>
+   <table><tr><th>شرط</th><th>وضعیت</th></tr>
+    <tr><td>نگه‌داشتن: B با توضیح بدون راهنما ≥ ۳ (الان ${fa(B.helped)}) و افراد دارای مکث/برگشت/کمک در B ≤ A (${fa(B.trouble)} در برابر ${fa(A.trouble)})</td><td class="${d.keep?'ok':'bad'}">${d.keep?'برقرار':'برقرار نیست'}</td></tr>
+    <tr><td>حذف: B با اجباری/مکث پرکردن/انتظار ثبت ≥ ۲ (الان ${fa(B.objection)})، یا اختلاف مکث/برگشت/کمک B−A ≥ ${fa(c.gap)} (الان ${fa(B.trouble-A.trouble)})</td><td class="${d.del?'ok':'bad'}">${d.del?'برقرار':'برقرار نیست'}</td></tr></table>
+   <p class="mute">این نمونه الگوی رفتاری را نشان می‌دهد؛ نتیجهٔ آماری یا اثر فیلد بر واریز واقعی نیست.</p></div>
+  <div class="card"><h2>جمع‌بندی دو گروه (بدون جلسات آزمایشی)</h2>
+   <table><tr><th></th><th><span class="pill pA">A</span></th><th><span class="pill pB">B</span></th></tr>
+   ${row('جلسهٔ ثبت‌شده / تکمیل‌شده', fa(A.n)+' / '+fa(A.done), fa(B.n)+' / '+fa(B.done))}
+   ${row('تکمیل بدون کمک',fa(A.unassisted),fa(B.unassisted))}
+   ${row('تکمیل با کمک',fa(A.assisted),fa(B.assisted))}
+   ${row('ناتمام',fa(A.incomplete),fa(B.incomplete))}
+   ${row('محدودیت پروتوتایپ',fa(A.limit),fa(B.limit))}
+   ${row('میانهٔ زمان (فقط تکمیل بدون کمک؛ n در پرانتز)',m(A.med)+' ('+fa(A.tn)+')',m(B.med)+' ('+fa(B.tn)+')')}
+   ${row('افراد دارای مکث/برگشت/درخواست کمک',fa(A.trouble),fa(B.trouble))}
+   ${row('فیلد: استفاده / رد / ندید','—',fa(B.used)+' / '+fa(B.skipped)+' / '+fa(B.unseen))}
+   ${row('اجباری تصور کردند','—',fa(B.mand))}
+   ${row('انتظار ثبت یا بررسی مبلغ','—',fa(B.rec))}
+   ${row('فیلد را به فهم قدم بعدی کمک‌کننده دانستند','—',fa(B.helped))}
+   </table></div>
+  <div class="card"><h2>نمونه حرف‌ها (گروه B)</h2>
+   ${B.g.filter(p=>p.obs.quote||p.obs.q3).map(p=>`<div class="script"><b>${esc(p.code)}</b>${p.obs.q3?' — «'+esc(p.obs.q3)+'»':''}${p.obs.quote?'<br>'+esc(p.obs.quote):''}</div>`).join('')||'<span class="mute">—</span>'}</div>`;
+}
+
+/* ---------- export ---------- */
+function toCSV(){const h=['code','version','pilot','experience','outcome','elapsed_s','first_click','first_method','field_use','mandatory','expectation','helped','trouble','events','pause_note','quote','q1','q2','q3','q4','q5'];
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  return [h.join(','),...S.participants.map(p=>{const o=p.obs;return [p.code,p.version,p.pilot?1:0,p.exp?1:0,o.outcome,o.elapsed,o.firstClick,o.firstMethod,o.fieldUse,o.mandatory,o.expectation,o.helped,trouble(p)?1:0,o.events.map(e=>`${e.t??''}s:${e.type}${e.note?'('+e.note+')':''}`).join(' | '),o.pauseNote,o.quote,o.q1,o.q2,o.q3,o.q4,o.q5].map(q).join(',')})].join('\n')}
+function dl(n,t,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click()}
+
+render();
+</script>
+</body>
+</html>

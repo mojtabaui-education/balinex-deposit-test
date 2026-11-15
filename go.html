@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>نمونهٔ آزمایشی واریز</title>
+<style>html,body{margin:0;height:100%;background:#fff;font:15px Tahoma,sans-serif}iframe{border:0;width:100%;height:100%;display:block}.m{display:grid;place-items:center;height:100%;color:#555;padding:24px;text-align:center}</style></head>
+<body><div id="r"></div>
+<script src="config.js"></script>
+<script>
+const c=window.TEST_CONFIG||{},k=new URLSearchParams(location.search).get('c');
+const u=k===c.codeA?c.urlA:k===c.codeB?c.urlB:'';
+const r=document.getElementById('r');
+if(!u){r.innerHTML='<div class="m">این لینک معتبر نیست یا هنوز فعال نشده.</div>';}
+else{try{const x=new URL(u);if(x.hostname.endsWith('figma.com')&&x.pathname.startsWith('/proto')){x.hostname='embed.figma.com';x.searchParams.set('embed-host','share');x.searchParams.set('hide-ui','1');x.searchParams.set('hotspot-hints','0');x.searchParams.set('footer','false')}
+ r.innerHTML='<iframe allowfullscreen></iframe>';r.firstChild.src=x.toString();document.body.style.height='100vh';r.style.height='100%'}catch(e){r.innerHTML='<div class="m">لینک نامعتبر</div>'}}
+</script></body></html>
