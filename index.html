@@ -159,7 +159,7 @@ function vSetup(){
   <div class="card"><h2>داده</h2><div class="row">
    <button class="btn" id="exj">خروجی JSON</button><button class="btn" id="exc">خروجی CSV</button>
    <label class="btn" style="margin:0">ورود JSON<input type="file" id="imp" accept=".json" class="hide"></label>
-   <label class="btn" style="margin:0">ورود نتایج شرکت‌کننده‌ها (JSON)<input type="file" id="impr" accept=".json" class="hide"></label><button class="btn danger" id="reset">پاک‌کردن همه</button></div>
+   <label class="btn" style="margin:0">ورود نتایج شرکت‌کننده‌ها (JSON)<input type="file" id="impr" accept=".json" class="hide"></label><button class="btn pri" id="pull">دریافت نتایج از اینترنت</button><button class="btn" id="paste">ورود کد نتیجه</button><button class="btn danger" id="reset">پاک‌کردن همه</button></div>
    <p class="mute">داده فقط در مرورگر همین سیستم ذخیره می‌شود. بعد از هر روز آزمون خروجی بگیرید.</p></div>`;
   if(!L){['def','gap','appr','adate'].forEach(id=>$('#'+id).onchange=()=>{c.defaultDecision=$('#def').value;c.gap=+$('#gap').value||2;c.approver=$('#appr').value;c.approvedDate=$('#adate').value;save()})}
   $('#uA').onchange=e=>{c.urlA=e.target.value.trim();save()};$('#uB').onchange=e=>{c.urlB=e.target.value.trim();save()};
@@ -171,6 +171,8 @@ function vSetup(){
   $('#exc').onclick=()=>dl('balinex-test.csv','﻿'+toCSV(),'text/csv');
   $('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{S=JSON.parse(t);save();render()}catch(x){alert('فایل نامعتبر')}})};
   $('#impr').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{let a=JSON.parse(t);if(!Array.isArray(a))a=[a];a.forEach(applyResult);save();alert(a.length+' نتیجه وارد شد. نتیجهٔ «کمک‌کنندگی فیلد»، «اجباری تصور کرد» و «انتظار از مبلغ» را باید خودتان از پاسخ‌ها کدگذاری کنید.');render()}catch(x){alert('فایل نامعتبر')}})};
+  $('#pull').onclick=pullResults;
+  $('#paste').onclick=()=>{const c=prompt('کد نتیجه را بچسبانید');if(!c)return;try{const m=JSON.parse(decodeURIComponent(escape(atob(c.trim()))));alert(processMsgs(m)+' نتیجه وارد شد.');render()}catch(e){alert('کد نامعتبر')}};
   $('#reset').onclick=()=>{if(confirm('همهٔ داده پاک شود؟')){S=structuredClone(DEF);save();render()}};
 }
 
@@ -210,16 +212,25 @@ const goUrl=p=>base+(p.version==='A'?TC.codeA:TC.codeB)+'&m=1&p='+encodeURICompo
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 function applyResult(r){
   let p=S.participants.find(x=>x.code===r.p);
-  if(!p){p={id:'p'+Date.now()+Math.random().toString(36).slice(2,5),code:r.p,version:r.v,exp:false,pilot:false,obs:blank()};S.participants.push(p)}
-  const o=p.obs,a=r.answers||{};
-  const clicks=(r.events||[]).filter(e=>e.type==='click');
-  o.outcome=r.outcome==='done'?'unassisted':'incomplete';
-  o.elapsed=r.outcome==='done'?r.elapsed:o.elapsed;
-  if(clicks[0]&&!o.firstClick)o.firstClick=clicks[0].node+' @'+Math.round(clicks[0].t/1000)+'s';
+  if(!p){p={id:'p'+Date.now()+Math.random().toString(36).slice(2,5),code:r.p,version:r.v,exp:r.ex==='yes',pilot:false,obs:blank()};S.participants.push(p)}
+  const o=p.obs;
+  if(o.auto&&o.auto.ts===r.ts)return p;
+  const a=r.a||{};
+  o.outcome=r.o==='done'?'unassisted':'incomplete';
+  if(r.o==='done')o.elapsed=r.e;
+  const c=r.c||[];
+  o.firstClick=c[0]?c[0][1]+' @'+c[0][0]+'s':(r.fb!=null?'تقریبی @'+Math.round(r.fb/1000)+'s':o.firstClick);
   Object.assign(o,{q1:a.q1||'',q2:a.q2||'',q3:a.q3||'',q4:a.q4||'',q5:a.q5||''});
-  if(r.v==='B'&&r.filled)o.fieldUse=r.filled==='yes'?'used':'skipped';
-  o.auto={outcome:r.outcome,elapsed:r.elapsed,clicks:clicks.length,events:r.events||[]};
+  if(r.v==='B'){if(r.f)o.fieldUse=r.f==='yes'?'used':'skipped';if(r.m)o.mandatory=r.m;if(r.x)o.expectation=r.x}
+  o.auto={outcome:r.o,elapsed:r.e,clicks:r.cn||0,ts:r.ts,events:c.map(x=>({t:x[0],type:'click',note:x[1]}))};
   return p}
+function processMsgs(msgs){const g={};
+  msgs.forEach(m=>{if(!m||!m.p)return;const x=g[m.p+'|'+m.ts]=g[m.p+'|'+m.ts]||{a:{}};if(m.k)x.a[m.k]=m.t;else Object.assign(x,m)});
+  let n=0;Object.values(g).forEach(r=>{if(r.v&&r.p){applyResult(r);n++}});save();return n}
+async function pullResults(){const ep=TC.endpoint;if(!ep)return alert('endpoint در config.js تنظیم نشده.');
+  try{const t=await (await fetch(ep+'/json?poll=1&since=all')).text();
+    const msgs=t.split('\n').filter(Boolean).map(l=>{try{const e=JSON.parse(l);return e.event==='message'?JSON.parse(e.message):null}catch(x){return null}}).filter(Boolean);
+    const n=processMsgs(msgs);alert(n+' نتیجه دریافت شد.');render()}catch(e){alert('دریافت ناموفق بود: '+e.message)}}
 
 function embedUrl(u){try{const x=new URL(u);if(x.hostname.endsWith('figma.com')&&x.pathname.startsWith('/proto')){x.hostname='embed.figma.com';x.searchParams.set('embed-host','share');x.searchParams.set('hide-ui','1');x.searchParams.set('hotspot-hints','0');return x.toString()}return u}catch(e){return u}}
 
@@ -292,7 +303,7 @@ function vRun(){
     const cl=ev.filter(e=>e.type==='click'),fb=ev.find(e=>e.type==='firstclick_blur'),dn=ev.find(e=>e.type==='done_auto'||e.type==='done');
     $('#trk').innerHTML=!ev.length&&!res?'<span class="mute">هنوز داده‌ای نیست.</span>':
      '<div>کلیک‌ها: <b>'+cl.length+'</b>'+(cl[0]?' · اولین: '+esc(cl[0].node)+' در '+mmss(cl[0].t/1000):(fb?' · اولین کلیک (تقریبی) در '+mmss(fb.t/1000):''))+'</div>'+
-     (dn?'<div>رسیدن به پایان در '+mmss(dn.t/1000)+'</div>':'')+(res?'<div>پاسخ‌نامه ثبت شده · نتیجه: '+esc(res.outcome)+'</div>':'')+
+     (dn?'<div>رسیدن به پایان در '+mmss(dn.t/1000)+'</div>':'')+(res?'<div>پاسخ‌نامه ثبت شده · نتیجه: '+esc(res.o)+'</div>':'')+
      (cl.length?'<div class="mute">'+cl.slice(0,12).map(e=>esc(e.node)+'@'+mmss(e.t/1000)).join(' · ')+'</div>':'')};
   drawTrk();$('#trr').onclick=drawTrk;
   $('#tri').onclick=()=>{const res=lsGet('bt-result-'+p.code),ev=lsGet('bt-'+p.code)||[];

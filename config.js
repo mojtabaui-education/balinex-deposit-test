@@ -6,5 +6,5 @@ window.TEST_CONFIG = {
   codeB: "m3x",
   clientId: "",      // Figma embed client-id (برای ردگیری کلیک)
   doneNodeIds: [],   // شناسهٔ فریم «شمارهٔ کارت مقصد» برای زمان خودکار
-  endpoint: ""       // آدرس دریافت نتایج شرکت‌کننده‌های راه‌دور
+  endpoint: "https://ntfy.sh/balinex-dep-97d0e08d7367b4b36fd03ab92ac5"   // کانال دریافت نتایج (غیرقابل‌حدس)
 };

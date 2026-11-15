@@ -83,20 +83,34 @@ let outcome='',elapsed=null;
 function end(o){if(finished)return;finished=true;outcome=o;elapsed=Math.round((Date.now()-t0)/1000);log(o);buildQs();show('qs');
   if(o==='timeout')alert('سه دقیقه گذشت؛ می‌رویم سراغ چند سؤال کوتاه.')}
 
+const radios=(name,opts)=>'<div class="opt">'+opts.map(([v,t])=>'<label><input type="radio" name="'+name+'" value="'+v+'">'+t+'</label>').join('')+'</div>';
 const qList=()=>{const a=[['q1','قدم بعدی‌ات در دنیای واقعی چی بود؟'],['q2','کجای این مسیر برات مبهم بود؟']];
   if(ver==='B')a.push(['q3','به نظرت فیلد مبلغ چه کاری انجام می‌داد؟'],['q4','فکر می‌کردی بدون پر کردنش می‌تونی ادامه بدی؟']);return a};
-function buildQs(){let h=qList().map(([k,t])=>`<label>${t}</label><textarea data-k="${k}"></textarea>`).join('');
-  if(ver==='B')h+=`<label>مبلغ را وارد کردی؟</label><div class="opt"><label><input type="radio" name="fl" value="yes">بله</label><label><input type="radio" name="fl" value="no">خیر</label></div>
-   <div id="q5w" style="display:none"><label>مبلغی که وارد کردی، فکر می‌کنی کجا استفاده می‌شه؟</label><textarea data-k="q5"></textarea></div>`;
+function buildQs(){let h=qList().map(([k,t])=>'<label>'+t+'</label><textarea data-k="'+k+'"></textarea>').join('');
+  if(ver==='B'){
+    h+='<label>مبلغ را وارد کردی؟</label>'+radios('fl',[['yes','بله'],['no','خیر']]);
+    h+='<div id="q5w" style="display:none"><label>مبلغی که وارد کردی، فکر می‌کنی کجا استفاده می‌شه؟</label><textarea data-k="q5"></textarea></div>';
+    h+='<label>فکر می‌کردی پر کردن فیلد مبلغ اجباری است؟</label>'+radios('md',[['yes','بله'],['no','خیر'],['unk','نامشخص']]);
+    h+='<label>انتظار داشتی مبلغی که می‌نویسی چه بشه؟</label>'+radios('ex2',[['recorded','ثبت یا بررسی بشه'],['unused','استفاده نشه'],['unk','نمی‌دونم']]);
+  }
+  h+='<label>قبلاً در بالینکس واریز انجام داده‌ای؟</label>'+radios('exp',[['yes','بله'],['no','خیر']]);
   $('qbody').innerHTML=h;
   document.querySelectorAll('[name=fl]').forEach(r=>r.onchange=()=>{$('q5w').style.display=r.value==='yes'&&r.checked?'block':'none'})}
 
+const post=async m=>{const r=await fetch(C.endpoint,{method:'POST',body:JSON.stringify(m)});if(!r.ok)throw new Error(r.status)};
 $('send').onclick=async()=>{
-  const ans={};document.querySelectorAll('[data-k]').forEach(t=>ans[t.dataset.k]=t.value.trim());
-  const fl=document.querySelector('[name=fl]:checked');
-  const r={p:pid,v:ver,outcome,elapsed,events,answers:ans,filled:fl?fl.value:'',ts:new Date().toISOString(),ua:navigator.userAgent,vw:innerWidth};
-  try{localStorage.setItem('bt-result-'+pid,JSON.stringify(r))}catch(e){}
-  if(C.endpoint){try{await fetch(C.endpoint,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(r)})}catch(e){}}
-  else $('endmsg').textContent='پاسخ‌هایت ثبت شد. لطفاً به مجری اعلام کن که تمام شد.';
+  const btn=$('send');btn.disabled=true;btn.textContent='در حال ثبت...';
+  const get=n=>{const r=document.querySelector('[name='+n+']:checked');return r?r.value:''};
+  const ans={};document.querySelectorAll('[data-k]').forEach(t=>{if(t.value.trim())ans[t.dataset.k]=t.value.trim().slice(0,1400)});
+  const cl=events.filter(e=>e.type==='click'),fb=events.find(e=>e.type==='firstclick_blur');
+  const meta={p:pid,v:ver,o:outcome,e:elapsed,cn:cl.length,c:cl.slice(0,15).map(e=>[Math.round(e.t/100)/10,e.node]),fb:fb?fb.t:null,f:get('fl'),m:get('md'),x:get('ex2'),ex:get('exp'),ts:new Date().toISOString(),vw:innerWidth};
+  const msgs=[meta,...Object.entries(ans).map(([k,t])=>({p:pid,ts:meta.ts,k,t}))];
+  try{localStorage.setItem('bt-result-'+pid,JSON.stringify({...meta,a:ans}))}catch(e){}
+  let ok=false;
+  if(C.endpoint){try{for(const m of msgs)await post(m);ok=true}catch(e){ok=false}}
+  if(ok){$('endmsg').textContent='پاسخ‌هایت ثبت شد. می‌توانی این صفحه را ببندی.'}
+  else{const code=btoa(unescape(encodeURIComponent(JSON.stringify(msgs))));
+    $('endmsg').innerHTML='ثبت خودکار انجام نشد. لطفاً این کد را کپی کنید و برای مجری بفرستید:<textarea readonly id="cd" style="margin-top:10px;direction:ltr;font-size:12px">'+code+'</textarea><button id="cp" style="margin-top:8px">کپی کد</button>';
+    $('cp').onclick=()=>{$('cd').select();document.execCommand('copy');$('cp').textContent='کپی شد'}}
   show('end')};
 </script></body></html>
