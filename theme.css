@@ -1,0 +1,18 @@
+@font-face{font-family:"Yekan Bakh";font-weight:400;font-display:swap;src:url(fonts/yb-400.ttf) format("truetype")}
+@font-face{font-family:"Yekan Bakh";font-weight:500;font-display:swap;src:url(fonts/yb-500.ttf) format("truetype")}
+@font-face{font-family:"Yekan Bakh";font-weight:700;font-display:swap;src:url(fonts/yb-700.ttf) format("truetype")}
+@font-face{font-family:"Yekan Bakh";font-weight:800;font-display:swap;src:url(fonts/yb-800.ttf) format("truetype")}
+
+:root{
+  --font:"Yekan Bakh",Vazirmatn,Tahoma,"Segoe UI",sans-serif;
+  --bg:#f3f4fa;--card:#fff;--ink:#181d35;--mute:#6a7190;--line:#e5e8f3;--soft:#f6f7fc;
+  --pri:#3b4cb0;--pri2:#5b6cd6;--pri-ink:#fff;--pri-soft:#eceffd;
+  --ok:#15803d;--ok-soft:#e8f6ee;--bad:#c0262d;--bad-soft:#fdecec;--warn:#b45309;--warn-soft:#fdf3e2;
+  --a:#0e7490;--b:#7c3aed;
+  --r:16px;--sh:0 1px 2px rgba(24,29,53,.05),0 8px 24px -12px rgba(24,29,53,.12);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f111a;--card:#181b28;--ink:#eceef8;--mute:#98a0bd;--line:#292e45;--soft:#1e2232;
+  --pri:#7f90ee;--pri2:#a3b0ff;--pri-ink:#0d1020;--pri-soft:#232948;
+  --ok:#4ade80;--ok-soft:#15281d;--bad:#f87171;--bad-soft:#2b1719;--warn:#fbbf24;--warn-soft:#2a2211;
+  --a:#22d3ee;--b:#a78bfa;--sh:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.5)}}
