@@ -26,6 +26,10 @@ input[type=radio]{accent-color:var(--pri)}
 #bar{display:flex;gap:10px;align-items:center;justify-content:center;padding:9px 12px;background:color-mix(in srgb,var(--card) 90%,transparent);border-bottom:1px solid var(--line);flex-wrap:wrap}
 #bar .t{font-size:14px;color:var(--mute)}
 #bar button{padding:7px 16px;font-size:14.5px}
+#bar #done{background:linear-gradient(135deg,#15803d,#22a45a);border-color:transparent;color:#fff;font-weight:800;font-size:16px;padding:8px 26px;box-shadow:0 8px 20px -10px #15803d;animation:pl 2.4s ease-in-out infinite}
+#bar #done:hover{color:#fff;filter:brightness(1.08)}
+@keyframes pl{0%,100%{box-shadow:0 0 0 0 rgba(21,128,61,.0),0 8px 20px -10px #15803d}50%{box-shadow:0 0 0 7px rgba(21,128,61,.14),0 8px 20px -10px #15803d}}
+#bar{position:relative;z-index:2}
 iframe{border:0;width:100%;flex:1;display:block;background:#fff}
 .m{display:grid;place-items:center;height:100%;color:var(--mute);padding:24px;text-align:center}
 </style></head>
@@ -35,12 +39,12 @@ iframe{border:0;width:100%;flex:1;display:block;background:#fff}
 <div id="intro" class="pg" style="display:none"><div class="box">
  <h2>امروز داریم طرح صفحهٔ واریز رو امتحان می‌کنیم</h2>
  <p>لطفاً مثل وقتی که خودت از سایت استفاده می‌کنی پیش برو. این فقط نمونهٔ آزمایشیه؛ نیازی به انتقال پول یا وارد کردن اطلاعات بانکی واقعی نیست. بعضی بخش‌ها در نمونه فعال نیستند.</p>
- <div class="mis"><b>مأموریت:</b> فرض کن می‌خوای کیف پول بالینکست رو با ۱٬۰۰۰٬۰۰۰ تومان شارژ کنی. یک کارت بانکی از قبل در حسابت ثبت شده. از همین صفحه شروع کن و تا جایی پیش برو که اطلاعات لازم برای انتقال رو داشته باشی. وقتی به اون مرحله رسیدی، دکمهٔ بالای صفحه رو بزن.</div>
+ <div class="mis"><b>مأموریت:</b> فرض کن می‌خوای کیف پول بالینکست رو با ۱٬۰۰۰٬۰۰۰ تومان شارژ کنی. یک کارت بانکی از قبل در حسابت ثبت شده. از همین صفحه شروع کن و تا جایی پیش برو که اطلاعات لازم برای انتقال رو داشته باشی. وقتی فکر کردی همهٔ اطلاعات لازم برای انتقال پول رو داری، دکمهٔ سبز «تمام شد» رو که بالای صفحه است بزن.</div>
  <p class="sub">بهتر است روی کامپیوتر باشی. با زدن «شروع» تست آغاز می‌شود.</p>
  <button class="p" id="go">شروع</button></div></div>
 
-<div id="task"><div id="bar"><span class="t">وقتی اطلاعات لازم برای انتقال رو داشتی:</span>
- <button class="p" id="done">به اطلاعات انتقال رسیدم</button><button id="giveup">نمی‌تونم ادامه بدم</button></div>
+<div id="task"><div id="bar"><span class="t">وقتی فکر می‌کنی اطلاعات لازم برای انتقال پول رو داری:</span>
+ <button class="p" id="done">✓ تمام شد</button><button id="giveup">نمی‌تونم ادامه بدم</button></div>
  <iframe id="fr" allowfullscreen></iframe></div>
 
 <div id="qs" class="pg" style="display:none"><div class="box"><h2>چند سؤال کوتاه</h2><div id="qbody"></div>
