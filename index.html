@@ -224,7 +224,7 @@ function vPeople(){
 }
 
 const OUT={unassisted:'تکمیل بدون کمک',assisted:'تکمیل با کمک',incomplete:'ناتمام',limit:'محدودیت پروتوتایپ'};
-const blank=()=>({startedAt:null,stoppedAt:null,elapsed:null,events:[],firstClick:'',firstMethod:'',outcome:'',fieldUse:'',mandatory:'',expectation:'',helped:'',quote:'',pauseNote:'',q1:'',q2:'',q3:'',q4:'',q5:''});
+const blank=()=>({startedAt:null,stoppedAt:null,elapsed:null,events:[],firstClick:'',firstMethod:'',outcome:'',fieldUse:'',mandatory:'',expectation:'',helped:'',quote:'',pauseNote:'',q1:'',q2:'',q3:'',q4:'',q5:'',sq:''});
 const EVT={click:'اولین کلیک',pause:'مکث',pausefill:'مکث برای پرکردن فیلد',back:'برگشت (مسیرنما)',help:'درخواست کمک',inactive:'کلیک روی بخش غیرفعال',note:'یادداشت'};
 let tick=null;
 const goUrl=p=>base+(p.version==='A'?TC.codeA:TC.codeB)+'&m=1&p='+encodeURIComponent(p.code);
@@ -240,7 +240,9 @@ function applyResult(r){
   const c=r.c||[];
   o.firstClick=c[0]?c[0][1]+' @'+c[0][0]+'s':(r.fb!=null?'تقریبی @'+Math.round(r.fb/1000)+'s':o.firstClick);
   Object.assign(o,{q1:a.q1||'',q2:a.q2||'',q3:a.q3||'',q4:a.q4||'',q5:a.q5||''});
-  if(r.v==='B'){if(r.f)o.fieldUse=r.f==='yes'?'used':'skipped';if(r.m)o.mandatory=r.m;if(r.x)o.expectation=r.x}
+  o.sq=r.sq?+r.sq:o.sq;
+  o.events=(o.events||[]).filter(e=>e.note!=='خودگزارشی');if(r.tr==='yes')o.events.push({t:null,type:'pause',note:'خودگزارشی'});   // مکث/برگشت/سردرگمی که خود شرکت‌کننده گفته
+  if(r.v==='B'){if(r.f)o.fieldUse=({yes:'used',no:'skipped'})[r.f]||r.f;if(r.m)o.mandatory=r.m;if(r.x)o.expectation=r.x;if(r.hp)o.helped=+r.hp>=4?'yes':'no'}   // کمک‌کنندگی: امتیاز ۴ یا ۵ از ۵
   o.auto={outcome:r.o,elapsed:r.e,clicks:r.cn||0,ts:r.ts,events:c.map(x=>({t:x[0],type:'click',note:x[1]}))};
   return p}
 function processMsgs(msgs){const g={};
@@ -265,7 +267,7 @@ function vRun(){
    ['۴ · مشاهده','ثبت: اولین کلیک، اولین روش، توقف، برگشت، درخواست کمک. به مبلغ یا روش کارت‌به‌کارت اشاره نکنید. کلیک روی «واریز تومان» در مسیرنما = «برگشت».'],
    ['۵ · موقعیت‌های خاص','درخواست کمک: فقط بپرسید «اگر تنها بودی، قدم بعدی‌ات چی بود؟»؛ راهنمایی مستقیم بعد از ثبت نتیجه.\nروش غیرفعال: خطا ندانید؛ یک بار بگویید «این بخش در نمونه فعال نیست؛ اگر بود، چه انتظاری داشتی؟»، پاسخ را ثبت و از همان صفحه ادامه دهید. با تکمیل کارت‌به‌کارت → «تکمیل با کمک»؛ وگرنه «محدودیت پروتوتایپ» (زمانش مقایسه نمی‌شود).\nسه دقیقه: اگر بعد از ۳ دقیقه به شمارهٔ کارت مقصد نرسید یا انصراف داد → «ناتمام» و برو گام ۷.'],
    ['۶ · پایان مأموریت','وقتی شمارهٔ کارت مقصد را پیدا کرد و گفت برای انتقال از آن استفاده می‌کند، تایمر را متوقف کنید.'],
-   ['۷ · پرسش‌های بعد از مأموریت','از همه: «قدم بعدی‌ات در دنیای واقعی چی بود؟» و «کجای این مسیر برات مبهم بود؟»'+(isB?'\nگروه B: «به نظرت فیلد مبلغ چه کاری انجام می‌داد؟» و «فکر می‌کردی بدون پر کردنش می‌تونی ادامه بدی؟»\nاگر فیلد را پر کرد: «مبلغی که وارد کردی، فکر می‌کنی کجا استفاده می‌شه؟»':'')]];
+   ['۷ · پرسش‌های بعد از مأموریت','از همه: «چقدر انجام این فرایند برات راحت بود؟ (۱ تا ۷)» و «وسط مسیر جایی مکث کردی، برگشتی یا نمی‌دونستی چی‌کار کنی؟ کجا؟»'+(isB?'\nگروه B: «فیلد مبلغ رو دیدی؟»، «به نظرت فیلد مبلغ چه کاری انجام می‌داد؟»، «فکر می‌کردی بدون پر کردنش می‌تونی ادامه بدی؟»، «انتظار داشتی مبلغی که می‌نویسی چه بشه؟» و «فیلد مبلغ به فهمیدن قدم بعدی کمکت کرد؟ (۱ تا ۵)»\nاگر فیلد را پر کرد: «مبلغی که وارد کردی، فکر می‌کنی کجا استفاده می‌شه؟»':'')]];
   $('#app').innerHTML=`
   <div class="row" style="margin-bottom:10px"><b class="big">${esc(p.code)}</b>
    <span class="pill p${p.version} ${S.showVer?'':'hide'}" id="vb">نسخهٔ ${p.version}</span>
@@ -294,15 +296,16 @@ function vRun(){
       <div><label>اولین روش انتخاب‌شده</label><input data-f="firstMethod" value="${esc(o.firstMethod)}"></div></div>
      <label>نتیجهٔ مأموریت</label><select data-f="outcome"><option value="">—</option>${Object.entries(OUT).map(([k,v])=>`<option value="${k}" ${o.outcome===k?'selected':''}>${v}</option>`).join('')}</select>
      <label>زمان ثبت‌شده</label><input data-f="elapsed" type="number" value="${o.elapsed??''}" placeholder="ثانیه — با توقف تایمر پر می‌شود">
+     <label>راحتی فرایند از نظر خود شرکت‌کننده (۱ تا ۷)</label><input data-f="sq" type="number" min="1" max="7" value="${o.sq??''}">
      ${isB?`<div class="grid g2"><div><label>رفتار با فیلد</label><select data-f="fieldUse"><option value="">—</option>${[['used','استفاده کرد'],['skipped','رد کرد'],['unseen','ندید']].map(([k,v])=>`<option value="${k}" ${o.fieldUse===k?'selected':''}>${v}</option>`).join('')}</select></div>
       <div><label>اجباری تصور کرد؟</label><select data-f="mandatory"><option value="">—</option>${[['yes','بله'],['no','خیر'],['unk','نامشخص']].map(([k,v])=>`<option value="${k}" ${o.mandatory===k?'selected':''}>${v}</option>`).join('')}</select></div>
-      <div><label>انتظار از مبلغ</label><select data-f="expectation"><option value="">—</option>${[['recorded','ثبت یا بررسی می‌شود'],['unused','استفاده نمی‌شود'],['unk','نمی‌داند']].map(([k,v])=>`<option value="${k}" ${o.expectation===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div><label>انتظار از مبلغ</label><select data-f="expectation"><option value="">—</option>${[['recorded','ثبت یا بررسی می‌شود'],['shown','فقط نمایش داده می‌شود'],['unused','استفاده نمی‌شود'],['unk','نمی‌داند']].map(([k,v])=>`<option value="${k}" ${o.expectation===k?'selected':''}>${v}</option>`).join('')}</select></div>
       <div><label>بدون راهنمایی گفت فیلد به فهم قدم بعدی کمک کرد؟</label><select data-f="helped"><option value="">—</option>${[['yes','بله'],['no','خیر']].map(([k,v])=>`<option value="${k}" ${o.helped===k?'selected':''}>${v}</option>`).join('')}</select></div></div>`:''}
      <label>محل و دلیل احتمالی مکث/برگشت</label><textarea data-f="pauseNote">${esc(o.pauseNote)}</textarea>
      <label>نقل‌قول کوتاه</label><textarea data-f="quote">${esc(o.quote)}</textarea>
-     <label>پاسخ: قدم بعدی در دنیای واقعی؟</label><textarea data-f="q1">${esc(o.q1)}</textarea>
-     <label>پاسخ: کجای مسیر مبهم بود؟</label><textarea data-f="q2">${esc(o.q2)}</textarea>
-     ${isB?`<label>پاسخ: فیلد مبلغ چه کاری می‌کرد؟</label><textarea data-f="q3">${esc(o.q3)}</textarea>
+     <label>پاسخ: شمارهٔ کارت رو چطور استفاده می‌کنی؟ (سؤال قدیمی)</label><textarea data-f="q1">${esc(o.q1)}</textarea>
+     <label>پاسخ: (اگر مکث/برگشت داشت) کجا؟</label><textarea data-f="q2">${esc(o.q2)}</textarea>
+     ${isB?`<label>پاسخ: به نظرت فیلد مبلغ چه کاری می‌کرد؟</label><textarea data-f="q3">${esc(o.q3)}</textarea>
       <label>پاسخ: بدون پرکردنش می‌توانستی ادامه بدهی؟</label><textarea data-f="q4">${esc(o.q4)}</textarea>
       <label>پاسخ (اگر پر کرد): مبلغ کجا استفاده می‌شود؟</label><textarea data-f="q5">${esc(o.q5)}</textarea>`:''}
     </div></div></div>`;
@@ -346,7 +349,7 @@ function stats(v){const g=real().filter(p=>p.version===v);
   const n=k=>g.filter(p=>p.obs.outcome===k).length;
   const t=g.filter(p=>p.obs.outcome==='unassisted'&&p.obs.elapsed!=null).map(p=>p.obs.elapsed);
   return{g,n:g.length,done:g.filter(p=>p.obs.outcome).length,unassisted:n('unassisted'),assisted:n('assisted'),incomplete:n('incomplete'),limit:n('limit'),med:median(t),tn:t.length,trouble:g.filter(trouble).length,
-   mand:g.filter(p=>p.obs.mandatory==='yes').length,rec:g.filter(p=>p.obs.expectation==='recorded').length,objection:g.filter(objection).length,helped:g.filter(p=>p.obs.helped==='yes').length,
+   mand:g.filter(p=>p.obs.mandatory==='yes').length,rec:g.filter(p=>p.obs.expectation==='recorded').length,objection:g.filter(objection).length,helped:g.filter(p=>p.obs.helped==='yes').length,ease:(()=>{const v=g.map(p=>+p.obs.sq).filter(x=>x>0);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length*10)/10:null})(),
    used:g.filter(p=>p.obs.fieldUse==='used').length,skipped:g.filter(p=>p.obs.fieldUse==='skipped').length,unseen:g.filter(p=>p.obs.fieldUse==='unseen').length}}
 
 function decide(a,b){
@@ -382,6 +385,7 @@ function vRes(){
    ${row('میانهٔ زمان (فقط تکمیل بدون کمک؛ n در پرانتز)',m(A.med)+' ('+fa(A.tn)+')',m(B.med)+' ('+fa(B.tn)+')')}
    ${row('افراد دارای مکث/برگشت/درخواست کمک',fa(A.trouble),fa(B.trouble))}
    ${row('فیلد: استفاده / رد / ندید','—',fa(B.used)+' / '+fa(B.skipped)+' / '+fa(B.unseen))}
+   ${row('میانگین راحتی فرایند (۱ تا ۷، خودگزارشی)',A.ease==null?'—':fa(A.ease),B.ease==null?'—':fa(B.ease))}
    ${row('اجباری تصور کردند','—',fa(B.mand))}
    ${row('انتظار ثبت یا بررسی مبلغ','—',fa(B.rec))}
    ${row('فیلد را به فهم قدم بعدی کمک‌کننده دانستند','—',fa(B.helped))}
@@ -391,9 +395,9 @@ function vRes(){
 }
 
 /* ---------- export ---------- */
-function toCSV(){const h=['code','version','pilot','experience','outcome','elapsed_s','first_click','first_method','field_use','mandatory','expectation','helped','trouble','events','pause_note','quote','q1','q2','q3','q4','q5','auto_clicks'];
+function toCSV(){const h=['code','version','pilot','experience','outcome','elapsed_s','first_click','first_method','field_use','mandatory','expectation','helped','trouble','events','pause_note','quote','q1','q2','q3','q4','q5','auto_clicks','ease'];
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  return [h.join(','),...S.participants.map(p=>{const o=p.obs;return [p.code,p.version,p.pilot?1:0,p.exp?1:0,o.outcome,o.elapsed,o.firstClick,o.firstMethod,o.fieldUse,o.mandatory,o.expectation,o.helped,trouble(p)?1:0,o.events.map(e=>`${e.t??''}s:${e.type}${e.note?'('+e.note+')':''}`).join(' | '),o.pauseNote,o.quote,o.q1,o.q2,o.q3,o.q4,o.q5,o.auto?o.auto.clicks:''].map(q).join(',')})].join('\n')}
+  return [h.join(','),...S.participants.map(p=>{const o=p.obs;return [p.code,p.version,p.pilot?1:0,p.exp?1:0,o.outcome,o.elapsed,o.firstClick,o.firstMethod,o.fieldUse,o.mandatory,o.expectation,o.helped,trouble(p)?1:0,o.events.map(e=>`${e.t??''}s:${e.type}${e.note?'('+e.note+')':''}`).join(' | '),o.pauseNote,o.quote,o.q1,o.q2,o.q3,o.q4,o.q5,o.auto?o.auto.clicks:'',o.sq].map(q).join(',')})].join('\n')}
 function dl(n,t,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click()}
 
 render();

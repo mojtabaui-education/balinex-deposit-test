@@ -54,6 +54,15 @@ iframe{border:0;width:100%;flex:1;display:block;background:#fff}
 .tick{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;background:var(--ok-soft);color:var(--ok);font-size:32px;font-weight:800}
 textarea::placeholder{color:var(--mute);opacity:.7}
 .qn{display:flex;gap:10px;align-items:flex-start}
+.scale{display:flex;gap:8px;margin:2px 0}
+.scale label{position:relative;flex:1;margin:0;display:block;font-weight:500}
+.scale input{position:absolute;opacity:0;inset:0;width:100%;height:100%;cursor:pointer;margin:0}
+.scale span{display:block;text-align:center;padding:10px 0;border:1.5px solid var(--line);border-radius:12px;background:var(--soft);transition:.15s}
+.scale label:hover span{border-color:var(--pri)}
+.scale input:checked+span{background:linear-gradient(135deg,var(--pri),var(--pri2));color:var(--pri-ink);border-color:transparent;font-weight:800}
+.scale input:focus-visible+span{box-shadow:0 0 0 4px var(--pri-soft)}
+.ends{display:flex;justify-content:space-between;color:var(--mute);font-size:13px;margin-top:4px}
+.qerr{display:none;margin-top:14px;padding:10px 14px;border-radius:12px;background:var(--bad-soft);color:var(--bad);font-size:14px}
 #task{position:relative}
 #ld{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;transition:opacity .45s;
   background:var(--bg);background-image:radial-gradient(800px 320px at 80% -60px,color-mix(in srgb,var(--pri) 12%,transparent),transparent 70%)}
@@ -90,6 +99,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <div id="qs" class="pg" style="display:none"><div class="box"><div class="brand"><span class="dot"></span>مرحلهٔ آخر</div><h2>فقط چند سؤال کوتاه</h2>
  <p class="sub" style="margin:0 0 4px">هر چی به ذهنت می‌رسه بنویس؛ جواب درست یا غلط نداریم و نظر صادقانه‌ات برامون ارزشمنده.</p><div id="qbody"></div>
+ <div id="qerr" class="qerr">لطفاً به سؤال «چقدر انجام این فرایند برات راحت بود؟» جواب بده؛ این مهم‌ترین سؤاله.</div>
  <button class="p" id="send" style="margin-top:18px">ثبت پاسخ‌ها</button></div></div>
 
 <div id="end" class="pg" style="display:none"><div class="box ok-box"><div class="tick">✓</div><h2>ممنون که کمک کردی!</h2><p id="endmsg">پاسخ‌هات ثبت شد و کمک بزرگی به بهتر شدن صفحهٔ واریز می‌کنه. می‌تونی این صفحه رو ببندی.</p></div></div>
@@ -144,27 +154,40 @@ let outcome='',elapsed=null;
 function end(o){if(finished)return;finished=true;outcome=o;elapsed=Math.round((Date.now()-t0)/1000);log(o);buildQs();show('qs');
   if(o==='timeout')alert('مشکلی نیست! زمان تست تموم شد. برویم سراغ چند سؤال کوتاه.')}
 
+const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const radios=(name,opts)=>'<div class="opt">'+opts.map(([v,t])=>'<label><input type="radio" name="'+name+'" value="'+v+'">'+t+'</label>').join('')+'</div>';
-const qList=()=>{const a=[['q1','قدم بعدی‌ات در دنیای واقعی چی بود؟'],['q2','کجای این مسیر برات مبهم بود؟']];
-  if(ver==='B')a.push(['q3','به نظرت فیلد مبلغ چه کاری انجام می‌داد؟'],['q4','فکر می‌کردی بدون پر کردنش می‌تونی ادامه بدی؟']);return a};
-function buildQs(){let h=qList().map(([k,t])=>'<label>'+t+'</label><textarea data-k="'+k+'" placeholder="هر چی به ذهنت می‌رسه بنویس…"></textarea>').join('');
+const scale=(name,n,lo,hi)=>'<div class="scale">'+Array.from({length:n},(_,i)=>'<label><input type="radio" name="'+name+'" value="'+(i+1)+'"><span>'+fa(i+1)+'</span></label>').join('')+'</div><div class="ends"><span>'+lo+'</span><span>'+hi+'</span></div>';
+const ta=(k,t,ph)=>'<label>'+t+'</label><textarea data-k="'+k+'" placeholder="'+(ph||'هر چی به ذهنت می‌رسه بنویس…')+'"></textarea>';
+function buildQs(){
+  let h='';
+  h+='<label>چقدر انجام این فرایند برات راحت بود؟</label>'+scale('sq',7,'خیلی سخت','خیلی راحت');
+  h+='<label>وسط مسیر جایی مکث کردی، برگشتی یا نمی‌دونستی چی‌کار کنی؟</label>'+radios('tr',[['yes','بله'],['no','خیر']]);
+  h+='<div id="q2w" style="display:none">'+ta('q2','کجا؟ (اختیاری)')+'</div>';
   if(ver==='B'){
-    h+='<label>مبلغ را وارد کردی؟</label>'+radios('fl',[['yes','بله'],['no','خیر']]);
-    h+='<div id="q5w" style="display:none"><label>مبلغی که وارد کردی، فکر می‌کنی کجا استفاده می‌شه؟</label><textarea data-k="q5"></textarea></div>';
-    h+='<label>فکر می‌کردی پر کردن فیلد مبلغ اجباری است؟</label>'+radios('md',[['yes','بله'],['no','خیر'],['unk','نامشخص']]);
-    h+='<label>انتظار داشتی مبلغی که می‌نویسی چه بشه؟</label>'+radios('ex2',[['recorded','ثبت یا بررسی بشه'],['unused','استفاده نشه'],['unk','نمی‌دونم']]);
+    h+='<label>فیلد مبلغ رو دیدی؟</label>'+radios('fl',[['used','دیدم و پر کردم'],['skipped','دیدم و پر نکردم'],['unseen','ندیدمش']]);
+    h+='<div id="bw">'+ta('q3','به نظرت فیلد مبلغ چه کاری انجام می‌داد؟');
+    h+='<label>فکر می‌کردی بدون پر کردنش می‌تونی ادامه بدی؟</label>'+radios('cc',[['yes','بله'],['no','خیر'],['unk','نمی‌دونم']]);
+    h+='<label>انتظار داشتی مبلغی که می‌نویسی چه بشه؟</label>'+radios('ex2',[['recorded','ثبت یا بررسی بشه'],['shown','فقط نمایش داده بشه'],['unused','استفاده نشه'],['unk','نمی‌دونم']]);
+    h+='<label>فیلد مبلغ به فهمیدن قدم بعدی کمکت کرد؟</label>'+scale('hp',5,'اصلاً','خیلی');
+    h+='<div id="q5w" style="display:none">'+ta('q5','مبلغی که وارد کردی، فکر می‌کنی کجا استفاده می‌شه؟')+'</div></div>';
   }
   h+='<label>قبلاً در سایت صرافی واریز انجام داده‌ای؟</label>'+radios('exp',[['yes','بله'],['no','خیر']]);
   $('qbody').innerHTML=h;
-  document.querySelectorAll('[name=fl]').forEach(r=>r.onchange=()=>{$('q5w').style.display=r.value==='yes'&&r.checked?'block':'none'})}
+  document.querySelectorAll('[name=tr]').forEach(r=>r.onchange=()=>{$('q2w').style.display=r.value==='yes'&&r.checked?'block':'none'});
+  document.querySelectorAll('[name=fl]').forEach(r=>r.onchange=()=>{if(!r.checked)return;$('bw').style.display=r.value==='unseen'?'none':'block';$('q5w').style.display=r.value==='used'?'block':'none'});
+}
 
 const post=async m=>{const r=await fetch(C.endpoint,{method:'POST',body:JSON.stringify(m)});if(!r.ok)throw new Error(r.status)};
 $('send').onclick=async()=>{
   const btn=$('send');btn.disabled=true;btn.textContent='در حال ثبت پاسخ‌ها…';
-  const get=n=>{const r=document.querySelector('[name='+n+']:checked');return r?r.value:''};
-  const ans={};document.querySelectorAll('[data-k]').forEach(t=>{if(t.value.trim())ans[t.dataset.k]=t.value.trim().slice(0,1400)});
+  const raw=n=>{const r=document.querySelector('[name='+n+']:checked');return r?r.value:''};
+  if(!raw('sq')){btn.disabled=false;btn.textContent='ثبت پاسخ‌ها';const e=$('qerr');e.style.display='block';e.scrollIntoView({block:'center',behavior:'smooth'});return}
+  const unseen=ver==='B'&&raw('fl')==='unseen';                       /* a participant who never saw the field is not asked about it */
+  const bOnly=new Set(['cc','ex2','hp']);
+  const get=n=>unseen&&bOnly.has(n)?'':raw(n);
+  const ans={};document.querySelectorAll('[data-k]').forEach(t=>{if(unseen&&(t.dataset.k==='q3'||t.dataset.k==='q5'))return;if(t.dataset.k==='q2'&&raw('tr')!=='yes')return;if(t.dataset.k==='q5'&&raw('fl')!=='used')return;if(t.value.trim())ans[t.dataset.k]=t.value.trim().slice(0,1400)});
   const cl=events.filter(e=>e.type==='click'),fb=events.find(e=>e.type==='firstclick_blur');
-  const meta={p:pid,v:ver,o:outcome,e:elapsed,cn:cl.length,c:cl.slice(0,15).map(e=>[Math.round(e.t/100)/10,e.node]),fb:fb?fb.t:null,f:get('fl'),m:get('md'),x:get('ex2'),ex:get('exp'),ts:new Date().toISOString(),vw:innerWidth};
+  const meta={p:pid,v:ver,o:outcome,e:elapsed,cn:cl.length,c:cl.slice(0,15).map(e=>[Math.round(e.t/100)/10,e.node]),fb:fb?fb.t:null,f:get('fl'),m:({yes:'no',no:'yes',unk:'unk'})[get('cc')]||'',cc:get('cc'),x:get('ex2'),hp:get('hp'),sq:get('sq'),tr:get('tr'),ex:get('exp'),ts:new Date().toISOString(),vw:innerWidth};
   const msgs=[meta,...Object.entries(ans).map(([k,t])=>({p:pid,ts:meta.ts,k,t}))];
   try{localStorage.setItem('bt-result-'+pid,JSON.stringify({...meta,a:ans}))}catch(e){}
   let ok=false,err='';
