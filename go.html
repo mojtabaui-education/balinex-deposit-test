@@ -2,7 +2,12 @@
 <html lang="fa" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>نمونهٔ آزمایشی واریز</title>
+<title>تست طرح صفحهٔ واریز · بالینکس</title>
+<meta name="description" content="۵ دقیقه وقت بذار و طرح جدید صفحهٔ واریز بالینکس رو امتحان کن. نیازی به پول یا اطلاعات بانکی واقعی نیست.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="کمک کن صفحهٔ واریز بالینکس بهتر بشه">
+<meta property="og:description" content="یه تست کوتاه ۵ دقیقه‌ای؛ بدون پول و بدون اطلاعات بانکی. نظرت برای ما خیلی ارزشمنده.">
+<meta name="theme-color" content="#3b4cb0">
 <link rel="stylesheet" href="theme.css">
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%}
@@ -31,26 +36,43 @@ input[type=radio]{accent-color:var(--pri)}
 @keyframes pl{0%,100%{box-shadow:0 0 0 0 rgba(21,128,61,.0),0 8px 20px -10px #15803d}50%{box-shadow:0 0 0 7px rgba(21,128,61,.14),0 8px 20px -10px #15803d}}
 #bar{position:relative;z-index:2}
 iframe{border:0;width:100%;flex:1;display:block;background:#fff}
-.m{display:grid;place-items:center;height:100%;color:var(--mute);padding:24px;text-align:center}
+.m{display:grid;place-items:center;height:100%;color:var(--mute);padding:24px;text-align:center;font-size:17px}
+.brand{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;color:var(--pri);background:var(--pri-soft);padding:4px 14px;border-radius:99px;margin-bottom:14px}
+.brand .dot{width:9px;height:9px;border-radius:3px;background:linear-gradient(135deg,var(--pri),var(--pri2))}
+.lead{font-size:16.5px;margin:6px 0 14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}
+.chips span{background:var(--soft);border:1px solid var(--line);border-radius:99px;padding:3px 14px;font-size:13.5px;color:var(--mute)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;list-style:none;padding:0;margin:18px 0;counter-reset:s}
+.steps li{counter-increment:s;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 10px 10px;font-size:13.5px;text-align:center;line-height:1.7}
+.steps li::before{content:counter(s,persian);display:block;width:24px;height:24px;line-height:24px;margin:0 auto 4px;border-radius:50%;background:var(--pri);color:var(--pri-ink);font-weight:700;font-size:13px}
+@media(max-width:520px){.steps{grid-template-columns:1fr 1fr}.box{padding:22px!important}}
+.box.ok-box{text-align:center;padding:40px 28px}
+.tick{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;background:var(--ok-soft);color:var(--ok);font-size:32px;font-weight:800}
+textarea::placeholder{color:var(--mute);opacity:.7}
+.qn{display:flex;gap:10px;align-items:flex-start}
 </style></head>
 <body>
 <div id="msg" class="m" style="display:none"></div>
 
 <div id="intro" class="pg" style="display:none"><div class="box">
- <h2>امروز داریم طرح صفحهٔ واریز رو امتحان می‌کنیم</h2>
- <p>لطفاً مثل وقتی که خودت از سایت استفاده می‌کنی پیش برو. این فقط نمونهٔ آزمایشیه؛ نیازی به انتقال پول یا وارد کردن اطلاعات بانکی واقعی نیست. بعضی بخش‌ها در نمونه فعال نیستند.</p>
+ <div class="brand"><span class="dot"></span>بالینکس · تست کاربری</div>
+ <h2>به تست طرح صفحهٔ واریز خوش اومدی</h2>
+ <p class="lead">ممنون که وقت می‌ذاری! امروز داریم طرح صفحهٔ واریز رو امتحان می‌کنیم. لطفاً مثل وقتی که خودت از سایت استفاده می‌کنی پیش برو. این فقط نمونهٔ آزمایشیه؛ نیازی به انتقال پول یا وارد کردن اطلاعات بانکی واقعی نیست. بعضی بخش‌ها در نمونه فعال نیستند.</p>
+ <div class="chips"><span>حدود ۵ دقیقه</span><span>بدون پول و اطلاعات بانکی</span><span>روی کامپیوتر راحت‌تره</span></div>
  <div class="mis"><b>مأموریت:</b> فرض کن می‌خوای کیف پول بالینکست رو با ۱٬۰۰۰٬۰۰۰ تومان شارژ کنی. یک کارت بانکی از قبل در حسابت ثبت شده. از همین صفحه شروع کن و تا جایی پیش برو که اطلاعات لازم برای انتقال رو داشته باشی. وقتی به اون مرحله رسیدی، بهم بگو.<br><span style="color:var(--pri);font-weight:700">منظور از «اون مرحله»: وقتی شمارهٔ کارت مقصد رو دیدی و می‌دونی برای انتقال از اون استفاده می‌شه، دکمهٔ سبز «تمام شد» رو که بالای صفحه است بزن.</span></div>
- <p class="sub">بهتر است روی کامپیوتر باشی. با زدن «شروع» تست آغاز می‌شود.</p>
- <button class="p" id="go">شروع</button></div></div>
+ <ol class="steps"><li>مأموریت رو بخون</li><li>تو نمونه پیش برو</li><li>دکمهٔ سبز رو بزن</li><li>به چند سؤال کوتاه جواب بده</li></ol>
+ <p class="sub">ما طرح رو می‌سنجیم، نه تو رو؛ جواب درست یا غلط وجود نداره. وقتی آماده‌ای، «شروع تست» رو بزن.</p>
+ <button class="p" id="go">شروع تست</button></div></div>
 
 <div id="task"><div id="bar"><span class="t"><b>هدف:</b> رسیدن به شمارهٔ کارت مقصد برای انتقال پول. وقتی اون شماره رو دیدی، دکمهٔ سبز رو بزن ←</span>
  <button class="p" id="done">✓ شمارهٔ کارت رو دیدم، تمام شد</button><button id="giveup">نمی‌تونم پیداش کنم</button></div>
  <iframe id="fr" allowfullscreen></iframe></div>
 
-<div id="qs" class="pg" style="display:none"><div class="box"><h2>چند سؤال کوتاه</h2><div id="qbody"></div>
- <button class="p" id="send" style="margin-top:18px">ثبت و پایان</button></div></div>
+<div id="qs" class="pg" style="display:none"><div class="box"><div class="brand"><span class="dot"></span>مرحلهٔ آخر</div><h2>فقط چند سؤال کوتاه</h2>
+ <p class="sub" style="margin:0 0 4px">هر چی به ذهنت می‌رسه بنویس؛ جواب درست یا غلط نداریم و نظر صادقانه‌ات برامون ارزشمنده.</p><div id="qbody"></div>
+ <button class="p" id="send" style="margin-top:18px">ثبت پاسخ‌ها</button></div></div>
 
-<div id="end" class="pg" style="display:none"><div class="box"><h2>ممنون از وقتی که گذاشتی</h2><p id="endmsg">پاسخ‌هایت ثبت شد. می‌توانی این صفحه را ببندی.</p></div></div>
+<div id="end" class="pg" style="display:none"><div class="box ok-box"><div class="tick">✓</div><h2>ممنون که کمک کردی!</h2><p id="endmsg">پاسخ‌هات ثبت شد و کمک بزرگی به بهتر شدن صفحهٔ واریز می‌کنه. می‌تونی این صفحه رو ببندی.</p></div></div>
 
 <script src="config.js"></script>
 <script>
@@ -66,7 +88,7 @@ const KEY='bt-'+pid;
 const log=(type,node)=>{if(t0==null)return;events.push({t:Date.now()-t0,type,node:node||''});try{localStorage.setItem(KEY,JSON.stringify(events))}catch(e){}};
 function frameUrl(){const x=new URL(u);if(x.hostname.endsWith('figma.com')&&x.pathname.startsWith('/proto')){x.hostname='embed.figma.com';x.searchParams.set('embed-host','share');x.searchParams.set('hide-ui','1');x.searchParams.set('hotspot-hints','0');x.searchParams.set('footer','false');if(C.clientId)x.searchParams.set('client-id',C.clientId)}return x.toString()}
 
-if(!u){$('msg').textContent='این لینک معتبر نیست یا هنوز فعال نشده.';show('msg')}
+if(!u){$('msg').innerHTML='<div><b>این لینک درست باز نشد.</b><br>لطفاً لینک رو دوباره از کسی که برات فرستاده بگیر.</div>';show('msg')}
 else{
   window.addEventListener('message',e=>{
     let h='';try{h=new URL(e.origin).hostname}catch(x){}
@@ -85,12 +107,12 @@ else{
 
 let outcome='',elapsed=null;
 function end(o){if(finished)return;finished=true;outcome=o;elapsed=Math.round((Date.now()-t0)/1000);log(o);buildQs();show('qs');
-  if(o==='timeout')alert('سه دقیقه گذشت؛ می‌رویم سراغ چند سؤال کوتاه.')}
+  if(o==='timeout')alert('مشکلی نیست! زمان تست تموم شد. برویم سراغ چند سؤال کوتاه.')}
 
 const radios=(name,opts)=>'<div class="opt">'+opts.map(([v,t])=>'<label><input type="radio" name="'+name+'" value="'+v+'">'+t+'</label>').join('')+'</div>';
 const qList=()=>{const a=[['q1','قدم بعدی‌ات در دنیای واقعی چی بود؟'],['q2','کجای این مسیر برات مبهم بود؟']];
   if(ver==='B')a.push(['q3','به نظرت فیلد مبلغ چه کاری انجام می‌داد؟'],['q4','فکر می‌کردی بدون پر کردنش می‌تونی ادامه بدی؟']);return a};
-function buildQs(){let h=qList().map(([k,t])=>'<label>'+t+'</label><textarea data-k="'+k+'"></textarea>').join('');
+function buildQs(){let h=qList().map(([k,t])=>'<label>'+t+'</label><textarea data-k="'+k+'" placeholder="هر چی به ذهنت می‌رسه بنویس…"></textarea>').join('');
   if(ver==='B'){
     h+='<label>مبلغ را وارد کردی؟</label>'+radios('fl',[['yes','بله'],['no','خیر']]);
     h+='<div id="q5w" style="display:none"><label>مبلغی که وارد کردی، فکر می‌کنی کجا استفاده می‌شه؟</label><textarea data-k="q5"></textarea></div>';
@@ -103,7 +125,7 @@ function buildQs(){let h=qList().map(([k,t])=>'<label>'+t+'</label><textarea dat
 
 const post=async m=>{const r=await fetch(C.endpoint,{method:'POST',body:JSON.stringify(m)});if(!r.ok)throw new Error(r.status)};
 $('send').onclick=async()=>{
-  const btn=$('send');btn.disabled=true;btn.textContent='در حال ثبت...';
+  const btn=$('send');btn.disabled=true;btn.textContent='در حال ثبت پاسخ‌ها…';
   const get=n=>{const r=document.querySelector('[name='+n+']:checked');return r?r.value:''};
   const ans={};document.querySelectorAll('[data-k]').forEach(t=>{if(t.value.trim())ans[t.dataset.k]=t.value.trim().slice(0,1400)});
   const cl=events.filter(e=>e.type==='click'),fb=events.find(e=>e.type==='firstclick_blur');
@@ -112,9 +134,9 @@ $('send').onclick=async()=>{
   try{localStorage.setItem('bt-result-'+pid,JSON.stringify({...meta,a:ans}))}catch(e){}
   let ok=false,err='';
   if(C.endpoint){try{for(const m of msgs)await post(m);ok=true}catch(e){ok=false;err=(e&&e.name?e.name+': ':'')+((e&&e.message)||String(e))}}
-  if(ok){$('endmsg').textContent='پاسخ‌هایت ثبت شد. می‌توانی این صفحه را ببندی.'}
+  if(ok){$('endmsg').textContent='پاسخ‌هات ثبت شد و کمک بزرگی به بهتر شدن صفحهٔ واریز می‌کنه. می‌تونی این صفحه رو ببندی.'}
   else{const code=btoa(unescape(encodeURIComponent(JSON.stringify(msgs))));
-    $('endmsg').innerHTML='ثبت خودکار انجام نشد. لطفاً این کد را کپی کنید و برای مجری بفرستید:<textarea readonly id="cd" style="margin-top:10px;direction:ltr;font-size:12px">'+code+'</textarea><div class="sub" dir="ltr" style="margin-top:6px">'+err+'</div><button id="cp" style="margin-top:8px">کپی کد</button>';
+    $('endmsg').innerHTML='پاسخ‌هات رو داریم، ولی ارسال خودکارش انجام نشد. لطفاً این کد رو کپی کن و برای ما بفرست تا ثبتش کنیم:<textarea readonly id="cd" style="margin-top:10px;direction:ltr;font-size:12px">'+code+'</textarea><div class="sub" dir="ltr" style="margin-top:6px">'+err+'</div><button id="cp" style="margin-top:8px">کپی کد</button>';
     $('cp').onclick=()=>{$('cd').select();document.execCommand('copy');$('cp').textContent='کپی شد'}}
   show('end')};
 </script></body></html>

@@ -116,6 +116,19 @@ function assign(exp,pilot){
   return Math.random()<.5?'A':'B';
 }
 
+/* ---------- invitation text (does not reveal the version) ---------- */
+const invite=link=>`سلام! 👋
+ممنون که برای تست طرح صفحهٔ واریز بالینکس وقت می‌ذاری.
+
+⏱ حدود ۵ دقیقه طول می‌کشه
+💳 فقط یه نمونهٔ آزمایشیه؛ لازم نیست پولی منتقل کنی یا اطلاعات بانکی بدی
+💻 اگه می‌تونی، لینک رو روی کامپیوتر باز کن
+
+لینک تست:
+${link}
+
+ما طرح رو می‌سنجیم، نه تو رو؛ جواب درست یا غلط وجود نداره. هر سؤالی داشتی همین‌جا بپرس. مرسی از کمکت!`;
+
 /* ---------- views ---------- */
 function render(){renderNav();({setup:vSetup,people:vPeople,run:vRun,res:vRes}[S.tab])()}
 
@@ -149,8 +162,10 @@ function vSetup(){
   </div>
   <div class="card"><h2>لینک ارسال به شرکت‌کننده‌ها</h2>
    <p class="mute">فقط پروتوتایپ را نشان می‌دهد؛ نام نسخه در صفحه نیست. لینک هر نسخه را به شرکت‌کنندهٔ همان نسخه بدهید. لینک پروتوتایپ‌ها باید در config.js هم ثبت شود.</p>
-   <label>نسخهٔ A</label><input readonly dir="ltr" value="${esc(base+(TC.codeA||''))}" onclick="this.select()">
-   <label>نسخهٔ B</label><input readonly dir="ltr" value="${esc(base+(TC.codeB||''))}" onclick="this.select()"></div>
+   ${['A','B'].map(v=>{const link=base+((v==='A'?TC.codeA:TC.codeB)||'');return `
+   <label>نسخهٔ ${v}</label><div class="row"><input readonly dir="ltr" style="flex:1;min-width:220px" value="${esc(link)}" onclick="this.select()"><button class="btn" data-copy="${esc(link)}">کپی لینک</button></div>
+   <textarea readonly rows="7" style="margin-top:8px" id="inv${v}">${esc(invite(link))}</textarea>
+   <div class="row" style="margin-top:6px"><button class="btn pri" data-copy-el="inv${v}">کپی متن دعوت نسخهٔ ${v}</button></div>`}).join('')}</div>
   <div class="card"><h2>پیش از شروع (بند ۴ و ۶ سند)</h2>
    <p class="mute">تیک‌ها ذخیره می‌شوند.</p>
    ${[['pre1','هر دو لینک را با ۱۳ گام جدول بند ۴ امتحان کردم و نتیجه‌ها مطابق انتظار بود'],['pre2','برای هر نسخه یک اجرای آزمایشی گرفتم (در برنامه با تیک «آزمایشی» ثبت شود و وارد مقایسه نمی‌شود)'],['pre3','لینک/متن مأموریت/برگه نیاز به اصلاحی نداشت (یا اصلاح شد)'],['pre4','۱۲ شرکت‌کننده (۶ نفر در هر نسخه) از کاربران فعلی یا بالقوه جذب شده‌اند']]
@@ -162,6 +177,10 @@ function vSetup(){
    <label class="btn" style="margin:0">ورود نتایج شرکت‌کننده‌ها (JSON)<input type="file" id="impr" accept=".json" class="hide"></label><button class="btn pri" id="pull">دریافت نتایج از اینترنت</button><button class="btn" id="paste">ورود کد نتیجه</button><button class="btn danger" id="reset">پاک‌کردن همه</button></div>
    <p class="mute">داده فقط در مرورگر همین سیستم ذخیره می‌شود. بعد از هر روز آزمون خروجی بگیرید.</p></div>`;
   if(!L){['def','gap','appr','adate'].forEach(id=>$('#'+id).onchange=()=>{c.defaultDecision=$('#def').value;c.gap=+$('#gap').value||2;c.approver=$('#appr').value;c.approvedDate=$('#adate').value;save()})}
+  const copy=(txt,btn)=>{const done=()=>{const o=btn.textContent;btn.textContent='کپی شد ✓';setTimeout(()=>btn.textContent=o,1500)};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,()=>{});else{const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();done()}};
+  document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>copy(b.dataset.copy,b));
+  document.querySelectorAll('[data-copy-el]').forEach(b=>b.onclick=()=>copy($('#'+b.dataset.copyEl).value,b));
   $('#uA').onchange=e=>{c.urlA=e.target.value.trim();save()};$('#uB').onchange=e=>{c.urlB=e.target.value.trim();save()};
   $('#lock').onclick=()=>{c.defaultDecision=$('#def').value;c.approver=$('#appr').value;c.approvedDate=$('#adate').value;c.gap=+$('#gap').value||2;
     if(!c.defaultDecision||!c.approver||!c.approvedDate)return alert('تصمیم پیش‌فرض، تأییدکننده و تاریخ را کامل کنید.');c.locked=true;save();render()};
@@ -187,11 +206,11 @@ function vPeople(){
    <div class="row" style="margin-top:10px"><button class="btn pri" id="add">ثبت و تخصیص نسخه</button>
    <span class="mute">تخصیص تصادفی است و در هر لایهٔ تجربه تا حد ممکن متعادل می‌ماند؛ سقف ۶ نفر برای هر نسخه.</span></div></div>
   <div class="card"><h2>فهرست (${fa(real().length)} از ۱۲)</h2>
-   <table><tr><th>شناسه</th><th>نسخه</th><th>تجربه</th><th>نوع</th><th>نتیجه</th><th></th></tr>
-   ${S.participants.map(p=>`<tr class="${p.id===S.sel?'sel':''}"><td>${esc(p.code)}</td>
+   <table><tr><th>نسخه</th><th>تجربه</th><th>نوع</th><th>نتیجه</th><th></th></tr>
+   ${S.participants.map(p=>`<tr class="${p.id===S.sel?'sel':''}">
     <td><span class="pill p${p.version}">${p.version}</span></td><td>${p.exp?'دارد':'ندارد'}</td><td>${p.pilot?'آزمایشی':'اصلی'}</td>
     <td>${OUT[p.obs.outcome]||'—'}</td>
-    <td class="row"><button class="btn" data-run="${p.id}">اجرا</button><button class="btn danger" data-del="${p.id}">حذف</button></td></tr>`).join('')||'<tr><td colspan=6 class="mute">هنوز کسی ثبت نشده.</td></tr>'}</table></div>`;
+    <td class="row"><button class="btn" data-run="${p.id}">اجرا</button><button class="btn danger" data-del="${p.id}">حذف</button></td></tr>`).join('')||'<tr><td colspan=5 class="mute">هنوز کسی ثبت نشده.</td></tr>'}</table></div>`;
   $('#add').onclick=()=>{
     const pilot=$('#pil').value==='1';
     if(!pilot&&real().length>=12)return alert('۱۲ نفر کامل است.');
