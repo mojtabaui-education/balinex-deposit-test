@@ -5,6 +5,6 @@ window.TEST_CONFIG = {
   codeA: "k7q",
   codeB: "m3x",
   clientId: "",      // Figma embed client-id (برای ردگیری کلیک)
-  doneNodeIds: [],   // شناسهٔ فریم «شمارهٔ کارت مقصد» برای زمان خودکار
+  doneNodeIds: ["12158:22164", "12159:46642"],   // فریم «06 Bank selected» در مسیر A و B؛ با رسیدن به آن، دکمهٔ سبز چشمک می‌زند (نیازمند clientId)
   endpoint: "https://ntfy.sh/balinex-dep-97d0e08d7367b4b36fd03ab92ac5"   // کانال دریافت نتایج (غیرقابل‌حدس)
 };

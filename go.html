@@ -35,6 +35,10 @@ input[type=radio]{accent-color:var(--pri)}
 #bar #done:hover{color:#fff;filter:brightness(1.08)}
 @keyframes pl{0%,100%{box-shadow:0 0 0 0 rgba(21,128,61,.0),0 8px 20px -10px #15803d}50%{box-shadow:0 0 0 7px rgba(21,128,61,.14),0 8px 20px -10px #15803d}}
 #bar{position:relative;z-index:2}
+#bar.hot{background:var(--ok-soft);border-bottom-color:var(--ok)}
+#bar #done.hot{animation:hot 1s ease-in-out infinite;transform-origin:center}
+@keyframes hot{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+#hint{display:none;flex-basis:100%;text-align:center;color:var(--ok);font-weight:700;font-size:14px}
 iframe{border:0;width:100%;flex:1;display:block;background:#fff}
 .m{display:grid;place-items:center;height:100%;color:var(--mute);padding:24px;text-align:center;font-size:17px}
 .brand{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;color:var(--pri);background:var(--pri-soft);padding:4px 14px;border-radius:99px;margin-bottom:14px}
@@ -50,6 +54,19 @@ iframe{border:0;width:100%;flex:1;display:block;background:#fff}
 .tick{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;background:var(--ok-soft);color:var(--ok);font-size:32px;font-weight:800}
 textarea::placeholder{color:var(--mute);opacity:.7}
 .qn{display:flex;gap:10px;align-items:flex-start}
+#task{position:relative}
+#ld{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;transition:opacity .45s;
+  background:var(--bg);background-image:radial-gradient(800px 320px at 80% -60px,color-mix(in srgb,var(--pri) 12%,transparent),transparent 70%)}
+#ld.off{opacity:0;pointer-events:none}
+#ld h3{margin:0;font-size:21px;font-weight:800}
+#ld .tip{color:var(--mute);font-size:15px;min-height:28px;max-width:420px;transition:opacity .3s}
+.spin{width:46px;height:46px;border-radius:50%;border:4px solid var(--pri-soft);border-top-color:var(--pri);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.track{width:min(320px,70vw);height:6px;border-radius:99px;background:var(--pri-soft);overflow:hidden}
+.track i{display:block;height:100%;width:8%;border-radius:99px;background:linear-gradient(90deg,var(--pri),var(--pri2));animation:fill 5s ease-out forwards}
+@keyframes fill{to{width:92%}}
+@media(prefers-reduced-motion:reduce){.spin{animation-duration:3s}.track i{animation:none;width:60%}}
+button:disabled{opacity:.5;cursor:not-allowed}
 </style></head>
 <body>
 <div id="msg" class="m" style="display:none"></div>
@@ -59,14 +76,17 @@ textarea::placeholder{color:var(--mute);opacity:.7}
  <h2>به تست طرح صفحهٔ واریز خوش اومدی</h2>
  <p class="lead">ممنون که وقت می‌ذاری! امروز داریم طرح صفحهٔ واریز رو امتحان می‌کنیم. لطفاً مثل وقتی که خودت از سایت استفاده می‌کنی پیش برو. این فقط نمونهٔ آزمایشیه؛ نیازی به انتقال پول یا وارد کردن اطلاعات بانکی واقعی نیست. بعضی بخش‌ها در نمونه فعال نیستند.</p>
  <div class="chips"><span>حدود ۵ دقیقه</span><span>بدون پول و اطلاعات بانکی</span><span>روی کامپیوتر راحت‌تره</span></div>
- <div class="mis"><b>مأموریت:</b> فرض کن می‌خوای کیف پول بالینکست رو با ۱٬۰۰۰٬۰۰۰ تومان شارژ کنی. یک کارت بانکی از قبل در حسابت ثبت شده. از همین صفحه شروع کن و تا جایی پیش برو که اطلاعات لازم برای انتقال رو داشته باشی. وقتی به اون مرحله رسیدی، بهم بگو.<br><span style="color:var(--pri);font-weight:700">منظور از «اون مرحله»: وقتی شمارهٔ کارت مقصد رو دیدی و می‌دونی برای انتقال از اون استفاده می‌شه، دکمهٔ سبز «تمام شد» رو که بالای صفحه است بزن.</span></div>
+ <div class="mis"><b>مأموریت:</b> فرض کن می‌خوای کیف پول بالینکست رو با ۱٬۰۰۰٬۰۰۰ تومان شارژ کنی. یک کارت بانکی از قبل در حسابت ثبت شده. از همین صفحه شروع کن و تا جایی پیش برو که اطلاعات لازم برای انتقال رو داشته باشی. وقتی به اون مرحله رسیدی، بهم بگو.</div>
  <ol class="steps"><li>مأموریت رو بخون</li><li>تو نمونه پیش برو</li><li>دکمهٔ سبز رو بزن</li><li>به چند سؤال کوتاه جواب بده</li></ol>
  <p class="sub">ما طرح رو می‌سنجیم، نه تو رو؛ جواب درست یا غلط وجود نداره. وقتی آماده‌ای، «شروع تست» رو بزن.</p>
  <button class="p" id="go">شروع تست</button></div></div>
 
 <div id="task"><div id="bar"><span class="t"><b>هدف:</b> رسیدن به شمارهٔ کارت مقصد برای انتقال پول. وقتی اون شماره رو دیدی، دکمهٔ سبز رو بزن ←</span>
- <button class="p" id="done">✓ شمارهٔ کارت رو دیدم، تمام شد</button><button id="giveup">نمی‌تونم پیداش کنم</button></div>
- <iframe id="fr" allowfullscreen></iframe></div>
+ <button class="p" id="done">✓ شمارهٔ کارت رو دیدم، تمام شد</button><button id="giveup">نمی‌تونم پیداش کنم</button>
+ <div id="hint">شمارهٔ کارت مقصد رو دیدی؟ حالا دکمهٔ سبز «تمام شد» رو بزن.</div></div>
+ <iframe id="fr" allowfullscreen></iframe>
+ <div id="ld"><div class="brand"><span class="dot"></span>بالینکس · تست کاربری</div><div class="spin"></div><h3>در حال آماده‌سازی نمونه…</h3>
+  <div class="track"><i></i></div><div class="tip" id="tip">چند ثانیه صبر کن؛ نمونه که آماده شد، مأموریت شروع می‌شه.</div></div></div>
 
 <div id="qs" class="pg" style="display:none"><div class="box"><div class="brand"><span class="dot"></span>مرحلهٔ آخر</div><h2>فقط چند سؤال کوتاه</h2>
  <p class="sub" style="margin:0 0 4px">هر چی به ذهنت می‌رسه بنویس؛ جواب درست یا غلط نداریم و نظر صادقانه‌ات برامون ارزشمنده.</p><div id="qbody"></div>
@@ -94,12 +114,27 @@ else{
     let h='';try{h=new URL(e.origin).hostname}catch(x){}
     if(!/figma\.com$/.test(h))return;
     const d=e.data||{},x=d.data||{},ty=d.type;
-    if(ty==='MOUSE_PRESS_OR_RELEASE')log('click',x.targetNodeId||'');
-    else if(ty==='PRESENTED_NODE_CHANGED'){const n=x.presentedNodeId||'';log('node',n);if((C.doneNodeIds||[]).includes(n))log('done_auto',n)}
+    if(ty==='INITIAL_LOAD'){loaded=true;tryBegin()}
+    else if(ty==='MOUSE_PRESS_OR_RELEASE')log('click',x.targetNodeId||'');
+    else if(ty==='PRESENTED_NODE_CHANGED'){const n=x.presentedNodeId||'';log('node',n);if((C.doneNodeIds||[]).includes(n)){log('done_auto',n);nudge()}}
   });
   window.addEventListener('blur',()=>{if(!firstBlurDone&&t0!=null&&document.activeElement===$('fr')){firstBlurDone=true;if(!events.some(e=>e.type==='click'))log('firstclick_blur')}});
-  function startTask(){events=[];t0=Date.now();log('start');$('fr').src=frameUrl();show('task');
+  /* The task clock starts only when the prototype is really ready, so loading time never counts against the participant. */
+  const TIPS=['نمونه شبیه سایت واقعیه؛ مثل همیشه ازش استفاده کن.','جواب درست یا غلط نداریم؛ ما طرح رو می‌سنجیم، نه تو رو.','وقتی شمارهٔ کارت مقصد رو دیدی، دکمهٔ سبز بالای صفحه رو بزن.','بعضی بخش‌ها در نمونه فعال نیستند؛ اگه چیزی کار نکرد، نگران نباش.'];
+  let loaded=false,minDone=false,began=false,tipI=0,tipT=null;
+  function begin(){if(began)return;began=true;clearInterval(tipT);
+    $('ld').classList.add('off');$('done').disabled=false;$('giveup').disabled=false;
+    events=[];t0=Date.now();log('start');
     if(!mod)setTimeout(()=>{if(!finished)end('timeout')},180000)}
+  const tryBegin=()=>{if(loaded&&minDone)begin()};
+  /* When the participant reaches the destination-card frame, make the green button impossible to miss. */
+  let nudged=false;
+  function nudge(){if(nudged||finished)return;nudged=true;$('done').classList.add('hot');$('bar').classList.add('hot');$('hint').style.display='block'}
+  function startTask(){events=[];$('done').disabled=true;$('giveup').disabled=true;
+    $('fr').onload=()=>{loaded=true;tryBegin()};$('fr').src=frameUrl();show('task');
+    tipT=setInterval(()=>{tipI=(tipI+1)%TIPS.length;const t=$('tip');t.style.opacity=0;setTimeout(()=>{t.textContent=TIPS[tipI];t.style.opacity=1},300)},3200);
+    setTimeout(()=>{minDone=true;tryBegin()},4000);   /* minimum wait so the screen never flashes */
+    setTimeout(begin,20000)}                         /* safety: never block the participant for more than 20 s */
   if(mod){$('bar').style.display='none';startTask()}
   else{show('intro');$('go').onclick=startTask}
   $('done').onclick=()=>end('done');$('giveup').onclick=()=>end('gaveup');
